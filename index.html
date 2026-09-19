@@ -209,7 +209,7 @@
         </form>
       </div>
     </div>
-    <p class="hint-text" style="text-align:center; margin-top:18px;">Entries are shared across everyone using this Trainer Desk.</p>
+    <p class="hint-text" style="text-align:center; margin-top:18px;">© Unique World Robotics India</p>
   </div>
 </div>
 
@@ -480,6 +480,8 @@
 // STATE
 // ================================================================
 let currentTrainer = null;
+let currentTrainerPasscode = null;
+let currentAdminPasscode = null;
 let dailyLogs = [];
 let sessions = [];
 let trainerProfiles = [];
@@ -617,11 +619,14 @@ async function loadTrainerNames() {
   sel.innerHTML = '<option value="">Select your name…</option>' + knownTrainerNames.map(n => `<option value="${n}">${n}</option>`).join("");
 }
 
-function rememberTrainer(name) { localStorage.setItem("uwr_remember_trainer", name); }
+function rememberTrainer(name, passcode) {
+  try { localStorage.setItem("uwr_remember_trainer", JSON.stringify({ name, passcode })); } catch (e) {}
+}
 function forgetTrainer() { try { localStorage.removeItem("uwr_remember_trainer"); } catch (e) {} }
 
-async function completeLogin(name) {
+async function completeLogin(name, passcode) {
   currentTrainer = name;
+  currentTrainerPasscode = passcode;
   await loadAllData();
   showScreen("trainer");
 }
@@ -642,8 +647,8 @@ async function handleTrainerLogin(e) {
   try {
     const result = await apiPost({ action: "login", name, passcode });
     if (result.status === "ok") {
-      if (remember) rememberTrainer(result.name);
-      await completeLogin(result.name);
+      if (remember) rememberTrainer(result.name, passcode);
+      await completeLogin(result.name, passcode);
     } else {
       errEl.textContent = result.message || "Login failed.";
       errEl.classList.remove("hidden");
@@ -699,8 +704,8 @@ async function handleVerifyOtp(e) {
   try {
     const result = await apiPost({ action: "verifySignupOtp", name, passcode, email, otp });
     if (result.status === "ok") {
-      rememberTrainer(result.name);
-      await completeLogin(result.name);
+      rememberTrainer(result.name, passcode);
+      await completeLogin(result.name, passcode);
     } else {
       errEl.textContent = result.message || "Verification failed."; errEl.classList.remove("hidden");
     }
@@ -721,6 +726,7 @@ async function handleAdminLogin(e) {
   try {
     const result = await apiPost({ action: "adminLogin", passcode });
     if (result.status === "ok") {
+      currentAdminPasscode = passcode;
       await loadAllData();
       showScreen("admin");
     } else {
@@ -736,6 +742,8 @@ async function handleAdminLogin(e) {
 
 function logout() {
   currentTrainer = null;
+  currentTrainerPasscode = null;
+  currentAdminPasscode = null;
   forgetTrainer();
   location.hash = "";
   showScreen("login");
@@ -776,7 +784,15 @@ function showScreen(name) {
 // DATA LOADING
 // ================================================================
 async function loadAllData() {
-  const result = await apiGet("getAll");
+  let result;
+  if (currentAdminPasscode !== null) {
+    result = await apiPost({ action: "getAdminData", passcode: currentAdminPasscode });
+  } else if (currentTrainer && currentTrainerPasscode !== null) {
+    result = await apiPost({ action: "getTrainerData", name: currentTrainer, passcode: currentTrainerPasscode });
+  } else {
+    return; // not authenticated yet — nothing to load
+  }
+  if (result.status !== "ok") throw new Error(result.message || "Could not load data.");
   dailyLogs = result.dailyLogs || [];
   sessions = result.sessions || [];
   trainerProfiles = result.trainers || [];
@@ -1383,11 +1399,21 @@ if ("serviceWorker" in navigator) {
   const remembered = localStorage.getItem("uwr_remember_trainer");
   if (remembered) {
     try {
-      const result = await apiGet("getTrainerNames");
-      const names = result.names || [];
-      if (names.includes(remembered)) {
-        await completeLogin(remembered);
-        return;
+      const { name, passcode } = JSON.parse(remembered);
+      if (name && passcode) {
+        const result = await apiPost({ action: "getTrainerData", name, passcode });
+        if (result.status === "ok") {
+          currentTrainer = name;
+          currentTrainerPasscode = passcode;
+          dailyLogs = result.dailyLogs || [];
+          sessions = result.sessions || [];
+          trainerProfiles = result.trainers || [];
+          schools = result.schools || [];
+          planProgress = result.planProgress || [];
+          assignments = result.assignments || [];
+          showScreen("trainer");
+          return;
+        }
       }
     } catch (err) { /* fall through to normal login screen */ }
     forgetTrainer();
