@@ -6,6 +6,7 @@
 <title>UWR Academics Desk</title>
 <meta name="theme-color" content="#603D98" />
 <link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" href="favicon.png" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -30,7 +31,7 @@
   .login-box { width: 100%; max-width: 420px; }
   .brand { text-align: center; margin-bottom: 28px; }
   .brand h1 { font-size: 1.8rem; color: var(--ink); }
-  .brand p { color: var(--ink-soft); font-size: 0.9rem; margin-top: 4px; }
+  .brand p { color: var(--green); font-size: 0.95rem; font-weight: 600; margin-top: 4px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
   .tabs { display: flex; font-size: 0.9rem; }
   .tab-btn { flex: 1; padding: 12px 0; background: none; border: none; cursor: pointer; color: var(--ink-soft); border-bottom: 1px solid var(--line); font-family: inherit; }
@@ -50,7 +51,7 @@
   .hint-text { color: var(--ink-soft); font-size: 0.78rem; }
 
   header.app-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 10px; }
-  header.app-header .brand-mini { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
+  header.app-header .brand-mini { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; color: var(--green); }
   main.app-main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -105,7 +106,7 @@
 <body>
 
 <script>
-  const CONFIG = { WEB_APP_URL: "PASTE_YOUR_APPS_SCRIPT_URL_HERE" };
+  const CONFIG = { WEB_APP_URL: "https://script.google.com/macros/s/AKfycby4AdwwWocRMb16sK_q7IkxJKlNbZpho0EbzyjSLY6NyfBqF0XOVbpQKWhFf0UmO-SJ/exec" };
   const UTIL = { WORKDAY_HOURS: 8, UNDER_MAX: 5, OVER_MIN: 7.5 };
   const SESSION_TYPES = ["Horizon Session", "One-on-One Session", "Webinar", "Competition Training", "Online Call", "Documentation", "Workshop", "Other"];
   const TYPE_COLORS = {
@@ -123,8 +124,9 @@
 <div id="screen-login" class="center-screen">
   <div class="login-box">
     <div class="brand">
+      <img src="logo-mark.png" alt="" style="height: 64px; width: auto; margin-bottom: 10px;" />
       <h1>Unique World Robotics</h1>
-      <p id="brand-subtitle">UWR Logbook — daily hours, clearly kept.</p>
+      <p id="brand-subtitle">UWR Logbook</p>
     </div>
     <div class="card">
       <div class="tabs">
@@ -529,8 +531,8 @@ function switchLoginTab(tab) {
   document.getElementById("tab-trainer-panel").classList.toggle("hidden", tab !== "trainer");
   document.getElementById("tab-admin-panel").classList.toggle("hidden", tab !== "admin");
   document.getElementById("brand-subtitle").textContent = tab === "admin"
-    ? "UWR Academics Desk — manage trainers & schools."
-    : "UWR Logbook — daily hours, clearly kept.";
+    ? "UWR Academics Desk"
+    : "UWR Logbook";
 }
 
 async function loadTrainerNames() {
