@@ -135,25 +135,67 @@
       </div>
 
       <div class="form-pad" id="tab-trainer-panel">
-        <form onsubmit="return handleTrainerLogin(event)">
-          <label class="field" id="name-select-field">
-            <span class="field-label">Your name</span>
-            <select id="login-name-select" onchange="onNameSelectChange()">
-              <option value="">Loading…</option>
-            </select>
-          </label>
-          <label class="field hidden" id="name-new-field">
-            <span class="field-label">Type your name (checked against the list above)</span>
-            <input type="text" id="login-name-new" placeholder="e.g. Priya Nair" />
-          </label>
-          <label class="field">
-            <span class="field-label">Passcode</span>
-            <input type="password" id="login-passcode" placeholder="Choose one the first time" required />
-          </label>
-          <p class="hint-text" style="margin-bottom:12px;">Pick your name from the list if you've logged in before — only choose "I'm new here" the very first time.</p>
-          <div id="trainer-login-error" class="error-text hidden"></div>
-          <button class="btn-primary" type="submit" id="trainer-login-btn">Continue</button>
-        </form>
+        <div class="tabs" style="margin-bottom:16px; border-bottom:1px solid var(--line);">
+          <button class="tab-btn active" id="subtab-login-btn" type="button" onclick="switchTrainerSubTab('login')">Log in</button>
+          <button class="tab-btn" id="subtab-signup-btn" type="button" onclick="switchTrainerSubTab('signup')">Sign up</button>
+        </div>
+
+        <!-- LOG IN -->
+        <div id="subtab-login">
+          <form onsubmit="return handleTrainerLogin(event)">
+            <label class="field">
+              <span class="field-label">Your name</span>
+              <select id="login-name-select">
+                <option value="">Loading…</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Passcode</span>
+              <input type="password" id="login-passcode" required />
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; margin-bottom:14px; color:var(--ink-soft);">
+              <input type="checkbox" id="remember-me" style="width:auto;" /> Keep me logged in on this device
+            </label>
+            <div id="trainer-login-error" class="error-text hidden"></div>
+            <button class="btn-primary" type="submit" id="trainer-login-btn">Log in</button>
+          </form>
+        </div>
+
+        <!-- SIGN UP -->
+        <div id="subtab-signup" class="hidden">
+          <div id="signup-step-details">
+            <form onsubmit="return handleRequestOtp(event)">
+              <label class="field">
+                <span class="field-label">Your name (used as your username)</span>
+                <input type="text" id="signup-name" placeholder="Your full name" required />
+              </label>
+              <label class="field">
+                <span class="field-label">Choose a passcode</span>
+                <input type="password" id="signup-passcode" required />
+              </label>
+              <label class="field">
+                <span class="field-label">Organizational email</span>
+                <input type="email" id="signup-email" placeholder="you@yourcompany.com" required />
+              </label>
+              <p class="hint-text" style="margin-bottom:12px;">Only your organization's email domain is accepted. We'll send a 6-digit code to verify it's really you.</p>
+              <div id="signup-request-error" class="error-text hidden"></div>
+              <button class="btn-primary" type="submit" id="signup-request-btn">Send verification code</button>
+            </form>
+          </div>
+
+          <div id="signup-step-otp" class="hidden">
+            <p class="hint-text" style="margin-bottom:12px;">We sent a 6-digit code to <strong id="signup-email-display"></strong>. Enter it below.</p>
+            <form onsubmit="return handleVerifyOtp(event)">
+              <label class="field">
+                <span class="field-label">Verification code</span>
+                <input type="text" id="signup-otp" inputmode="numeric" maxlength="6" placeholder="123456" required />
+              </label>
+              <div id="signup-verify-error" class="error-text hidden"></div>
+              <button class="btn-primary" type="submit" id="signup-verify-btn">Verify &amp; sign up</button>
+              <button class="link-btn" type="button" onclick="backToSignupDetails()" style="margin-top:8px;">← Use a different email</button>
+            </form>
+          </div>
+        </div>
       </div>
 
       <div class="form-pad hidden" id="tab-admin-panel">
@@ -186,11 +228,15 @@
       <h2 style="font-size:1.1rem; margin-bottom:16px;">My profile</h2>
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;" id="trainer-avatar-wrap"></div>
       <div class="grid-2">
-        <label class="field"><span class="field-label">Assigned school</span><input type="text" id="p-assignedSchool" placeholder="e.g. Greenwood High" /></label>
+        <div>
+          <span class="field-label" style="font-size:0.85rem;">My school assignments</span>
+          <div id="my-assignments-wrap" style="margin-top:6px;"></div>
+        </div>
         <label class="field"><span class="field-label">Photo URL (optional)</span><input type="text" id="p-photoUrl" placeholder="Link to an image of you" /></label>
       </div>
+      <p class="hint-text" style="margin-bottom:10px;">School assignments are set by admin — contact them if these need updating.</p>
       <div style="display:flex; align-items:center; gap:12px;">
-        <button class="btn-primary" type="button" onclick="handleSaveMyProfile()">Save profile</button>
+        <button class="btn-primary" type="button" onclick="handleSaveMyProfile()">Save photo</button>
         <span id="save-profile-success" class="success-text hidden">✓ Saved</span>
       </div>
     </div>
@@ -349,14 +395,28 @@
       </div>
     </div>
     <div class="card" style="padding:20px; margin-bottom:20px;">
-      <div class="grid-2">
-        <label class="field"><span class="field-label">Assigned school</span><input type="text" id="profile-assignedSchool" /></label>
-        <label class="field"><span class="field-label">Photo URL</span><input type="text" id="profile-photoUrl" /></label>
-      </div>
+      <label class="field" style="max-width:360px;"><span class="field-label">Photo URL</span><input type="text" id="profile-photoUrl" /></label>
       <div style="display:flex; align-items:center; gap:12px;">
         <button class="btn-primary" type="button" onclick="handleSaveProfileInfo()">Save</button>
         <span id="save-profile-info-success" class="success-text hidden">✓ Saved</span>
       </div>
+    </div>
+
+    <div class="card" style="padding:20px; margin-bottom:20px;">
+      <h3 class="section-title" style="margin-top:0;">School assignments</h3>
+      <div id="profile-assignments-wrap" style="margin-bottom:16px;"></div>
+      <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:10px;">
+        <label class="field" style="max-width:260px; margin-bottom:0;">
+          <span class="field-label">School</span>
+          <select id="assign-school-select"><option value="">Select a school…</option></select>
+        </label>
+        <div>
+          <span class="field-label" style="font-size:0.85rem;">Days</span>
+          <div id="assign-days-checkboxes" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;"></div>
+        </div>
+        <button class="btn-primary" type="button" onclick="handleSaveAssignment()">Assign</button>
+      </div>
+      <div id="assign-error" class="error-text hidden"></div>
     </div>
       <div class="stat-grid" id="profile-stat-grid"></div>
       <div class="grid-2">
@@ -425,10 +485,12 @@ let sessions = [];
 let trainerProfiles = [];
 let schools = [];
 let planProgress = [];
+let assignments = [];
 let knownTrainerNames = [];
 let charts = {};
 let adminView = "overview";
 let profileTrainerName = null;
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const AVATAR_PALETTE = ["#603D98", "#B9862E", "#B5574A", "#6D8CA6", "#A98BC1"];
 function initialsOf(name) {
@@ -535,20 +597,33 @@ function switchLoginTab(tab) {
     : "UWR Logbook";
 }
 
+function switchTrainerSubTab(tab) {
+  document.getElementById("subtab-login-btn").classList.toggle("active", tab === "login");
+  document.getElementById("subtab-signup-btn").classList.toggle("active", tab === "signup");
+  document.getElementById("subtab-login").classList.toggle("hidden", tab !== "login");
+  document.getElementById("subtab-signup").classList.toggle("hidden", tab !== "signup");
+}
+function backToSignupDetails() {
+  document.getElementById("signup-step-otp").classList.add("hidden");
+  document.getElementById("signup-step-details").classList.remove("hidden");
+}
+
 async function loadTrainerNames() {
   const sel = document.getElementById("login-name-select");
   try {
     const result = await apiGet("getTrainerNames");
     knownTrainerNames = (result.names || []).slice().sort();
   } catch (err) { knownTrainerNames = []; }
-  sel.innerHTML = '<option value="">Select your name…</option>' +
-    knownTrainerNames.map(n => `<option value="${n}">${n}</option>`).join("") +
-    '<option value="__new__">➕ I\'m new here</option>';
+  sel.innerHTML = '<option value="">Select your name…</option>' + knownTrainerNames.map(n => `<option value="${n}">${n}</option>`).join("");
 }
-function onNameSelectChange() {
-  const isNew = document.getElementById("login-name-select").value === "__new__";
-  document.getElementById("name-new-field").classList.toggle("hidden", !isNew);
-  if (isNew) document.getElementById("login-name-new").focus();
+
+function rememberTrainer(name) { localStorage.setItem("uwr_remember_trainer", name); }
+function forgetTrainer() { try { localStorage.removeItem("uwr_remember_trainer"); } catch (e) {} }
+
+async function completeLogin(name) {
+  currentTrainer = name;
+  await loadAllData();
+  showScreen("trainer");
 }
 
 async function handleTrainerLogin(e) {
@@ -558,33 +633,17 @@ async function handleTrainerLogin(e) {
   const btn = document.getElementById("trainer-login-btn");
   errEl.classList.add("hidden");
 
-  const selectVal = document.getElementById("login-name-select").value;
-  let name;
-  if (selectVal === "__new__") {
-    name = document.getElementById("login-name-new").value.trim();
-    if (!name) { errEl.textContent = "Type your name."; errEl.classList.remove("hidden"); return false; }
-    const collision = knownTrainerNames.find(n => n.toLowerCase() === name.toLowerCase());
-    if (collision) {
-      errEl.textContent = `"${collision}" is already on the list above — please select it instead.`;
-      errEl.classList.remove("hidden");
-      return false;
-    }
-  } else if (selectVal) {
-    name = selectVal;
-  } else {
-    errEl.textContent = "Select your name, or choose \"I'm new here\".";
-    errEl.classList.remove("hidden");
-    return false;
-  }
-
+  const name = document.getElementById("login-name-select").value;
+  if (!name) { errEl.textContent = "Select your name."; errEl.classList.remove("hidden"); return false; }
   const passcode = document.getElementById("login-passcode").value.trim();
+  const remember = document.getElementById("remember-me").checked;
+
   btn.disabled = true; btn.textContent = "Checking…";
   try {
     const result = await apiPost({ action: "login", name, passcode });
     if (result.status === "ok") {
-      currentTrainer = result.name;
-      await loadAllData();
-      showScreen("trainer");
+      if (remember) rememberTrainer(result.name);
+      await completeLogin(result.name);
     } else {
       errEl.textContent = result.message || "Login failed.";
       errEl.classList.remove("hidden");
@@ -593,7 +652,63 @@ async function handleTrainerLogin(e) {
     errEl.textContent = "Could not reach the server. Check the Apps Script URL and your connection.";
     errEl.classList.remove("hidden");
   }
-  btn.disabled = false; btn.textContent = "Continue";
+  btn.disabled = false; btn.textContent = "Log in";
+  return false;
+}
+
+async function handleRequestOtp(e) {
+  e.preventDefault();
+  if (!checkConfig()) return false;
+  const errEl = document.getElementById("signup-request-error");
+  const btn = document.getElementById("signup-request-btn");
+  errEl.classList.add("hidden");
+  const name = document.getElementById("signup-name").value.trim();
+  const passcode = document.getElementById("signup-passcode").value.trim();
+  const email = document.getElementById("signup-email").value.trim();
+  if (!name || !passcode || !email) { errEl.textContent = "Fill in all fields."; errEl.classList.remove("hidden"); return false; }
+
+  btn.disabled = true; btn.textContent = "Sending…";
+  try {
+    const result = await apiPost({ action: "requestSignupOtp", name, passcode, email });
+    if (result.status === "ok") {
+      document.getElementById("signup-email-display").textContent = email;
+      document.getElementById("signup-step-details").classList.add("hidden");
+      document.getElementById("signup-step-otp").classList.remove("hidden");
+    } else {
+      errEl.textContent = result.message || "Could not send code."; errEl.classList.remove("hidden");
+    }
+  } catch (err) {
+    errEl.textContent = "Could not reach the server. Check the Apps Script URL and your connection.";
+    errEl.classList.remove("hidden");
+  }
+  btn.disabled = false; btn.textContent = "Send verification code";
+  return false;
+}
+
+async function handleVerifyOtp(e) {
+  e.preventDefault();
+  const errEl = document.getElementById("signup-verify-error");
+  const btn = document.getElementById("signup-verify-btn");
+  errEl.classList.add("hidden");
+  const name = document.getElementById("signup-name").value.trim();
+  const passcode = document.getElementById("signup-passcode").value.trim();
+  const email = document.getElementById("signup-email").value.trim();
+  const otp = document.getElementById("signup-otp").value.trim();
+
+  btn.disabled = true; btn.textContent = "Verifying…";
+  try {
+    const result = await apiPost({ action: "verifySignupOtp", name, passcode, email, otp });
+    if (result.status === "ok") {
+      rememberTrainer(result.name);
+      await completeLogin(result.name);
+    } else {
+      errEl.textContent = result.message || "Verification failed."; errEl.classList.remove("hidden");
+    }
+  } catch (err) {
+    errEl.textContent = "Could not reach the server. Check the Apps Script URL and your connection.";
+    errEl.classList.remove("hidden");
+  }
+  btn.disabled = false; btn.textContent = "Verify & sign up";
   return false;
 }
 
@@ -621,6 +736,7 @@ async function handleAdminLogin(e) {
 
 function logout() {
   currentTrainer = null;
+  forgetTrainer();
   location.hash = "";
   showScreen("login");
   loadTrainerNames();
@@ -666,23 +782,36 @@ async function loadAllData() {
   trainerProfiles = result.trainers || [];
   schools = result.schools || [];
   planProgress = result.planProgress || [];
+  assignments = result.assignments || [];
 }
 
-async function saveTrainerInfo(name, assignedSchool, photoUrl) {
-  await apiPost({ action: "updateTrainerInfo", name, assignedSchool, photoUrl });
+async function saveTrainerInfo(name, photoUrl) {
+  await apiPost({ action: "updateTrainerInfo", name, assignedSchool: "", photoUrl });
   await loadAllData();
+}
+
+function assignmentsFor(trainerName) {
+  return assignments.filter(a => a.Trainer === trainerName);
+}
+function formatDays(daysStr) {
+  return (daysStr || "").split(",").filter(Boolean).join(", ") || "no days set";
 }
 
 function renderMyProfileCard() {
   const info = getTrainerProfile(currentTrainer);
   document.getElementById("trainer-avatar-wrap").innerHTML =
     renderAvatar(currentTrainer, info.PhotoUrl, 56) + `<div><strong>${currentTrainer}</strong></div>`;
-  document.getElementById("p-assignedSchool").value = info.AssignedSchool || "";
   document.getElementById("p-photoUrl").value = info.PhotoUrl || "";
+
+  const mine = assignmentsFor(currentTrainer);
+  const wrap = document.getElementById("my-assignments-wrap");
+  wrap.innerHTML = mine.length === 0
+    ? '<p class="hint-text">No school assigned yet.</p>'
+    : mine.map(a => `<div class="hint-text" style="margin-bottom:4px;"><strong>${a.School}</strong> — ${formatDays(a.Days)}</div>`).join("");
 }
 async function handleSaveMyProfile() {
   const success = document.getElementById("save-profile-success");
-  await saveTrainerInfo(currentTrainer, document.getElementById("p-assignedSchool").value, document.getElementById("p-photoUrl").value);
+  await saveTrainerInfo(currentTrainer, document.getElementById("p-photoUrl").value);
   renderMyProfileCard();
   success.classList.remove("hidden");
   setTimeout(() => success.classList.add("hidden"), 2000);
@@ -701,19 +830,15 @@ function readFileAsBase64(file) {
 }
 
 function schoolNamesList() {
-  const fromRegistry = schools.map(s => s.SchoolName);
-  const fromTrainers = trainerProfiles.map(t => t.AssignedSchool).filter(Boolean);
-  return [...new Set(fromRegistry.concat(fromTrainers))].sort();
+  return schools.map(s => s.SchoolName).sort();
 }
 
 function populateSchoolSelect() {
   const sel = document.getElementById("plan-school-select");
-  const names = schoolNamesList();
-  const myInfo = getTrainerProfile(currentTrainer);
-  sel.innerHTML = names.length
-    ? names.map(n => `<option value="${n}">${n}</option>`).join("")
-    : '<option value="">No schools registered yet</option>';
-  if (myInfo.AssignedSchool && names.includes(myInfo.AssignedSchool)) sel.value = myInfo.AssignedSchool;
+  const mine = assignmentsFor(currentTrainer);
+  sel.innerHTML = mine.length
+    ? mine.map(a => `<option value="${a.School}">${a.School} (${formatDays(a.Days)})</option>`).join("")
+    : '<option value="">No school assigned yet — contact admin</option>';
   renderSchoolPlanSection();
 }
 
@@ -922,10 +1047,32 @@ function openProfile(name) { profileTrainerName = name; setAdminView("profile");
 function openSchoolProfile(name) { profileSchoolName = name; setAdminView("school-profile"); }
 async function handleSaveProfileInfo() {
   const success = document.getElementById("save-profile-info-success");
-  await saveTrainerInfo(profileTrainerName, document.getElementById("profile-assignedSchool").value, document.getElementById("profile-photoUrl").value);
+  await saveTrainerInfo(profileTrainerName, document.getElementById("profile-photoUrl").value);
   renderProfile();
   success.classList.remove("hidden");
   setTimeout(() => success.classList.add("hidden"), 2000);
+}
+
+async function handleSaveAssignment() {
+  const errEl = document.getElementById("assign-error");
+  errEl.classList.add("hidden");
+  const school = document.getElementById("assign-school-select").value;
+  if (!school) { errEl.textContent = "Select a school."; errEl.classList.remove("hidden"); return; }
+  const days = Array.from(document.querySelectorAll(".assign-day-checkbox:checked")).map(el => el.value);
+  try {
+    await apiPost({ action: "saveAssignment", trainer: profileTrainerName, school, days });
+    await loadAllData();
+    renderProfile();
+  } catch (err) { errEl.textContent = "Could not save assignment."; errEl.classList.remove("hidden"); }
+}
+
+async function deleteAssignmentEntry(id) {
+  if (!confirm("Remove this school assignment?")) return;
+  try {
+    await apiPost({ action: "deleteAssignment", id });
+    await loadAllData();
+    renderProfile();
+  } catch (err) { alert("Could not remove assignment."); }
 }
 
 function renderSchoolDirectory() {
@@ -1141,12 +1288,14 @@ function renderDirectory() {
     const agg = buildDailyAggregates().filter(d => d.trainer === n);
     const days = agg.length;
     const info = getTrainerProfile(n);
+    const mine = assignmentsFor(n);
+    const schoolLabel = mine.length ? mine.map(a => a.School).join(", ") : "No school assigned";
     return `<div class="trainer-card" onclick="openProfile('${n}')">
       <span style="display:flex; align-items:center; gap:12px;">
         ${renderAvatar(n, info.PhotoUrl, 36)}
         <span>
           <div class="name">${n}</div>
-          <div class="meta">${info.AssignedSchool || "No school assigned"}</div>
+          <div class="meta">${schoolLabel}</div>
         </span>
       </span>
       <span class="meta">${days} day${days === 1 ? "" : "s"} logged</span>
@@ -1159,8 +1308,23 @@ function renderProfile() {
   document.getElementById("profile-name").textContent = name;
   const info = getTrainerProfile(name);
   document.getElementById("profile-avatar-wrap").innerHTML = renderAvatar(name, info.PhotoUrl, 48);
-  document.getElementById("profile-assignedSchool").value = info.AssignedSchool || "";
   document.getElementById("profile-photoUrl").value = info.PhotoUrl || "";
+
+  // Assignment management
+  const mine = assignmentsFor(name);
+  document.getElementById("profile-assignments-wrap").innerHTML = mine.length === 0
+    ? '<p class="hint-text">No schools assigned yet.</p>'
+    : mine.map(a => `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid var(--line); font-size:0.85rem;">
+        <span><strong>${a.School}</strong> — ${formatDays(a.Days)}</span>
+        <button class="btn-danger" onclick="deleteAssignmentEntry('${a.Id}')">Remove</button>
+      </div>`).join("");
+  const schoolSel = document.getElementById("assign-school-select");
+  const allSchools = schoolNamesList();
+  schoolSel.innerHTML = '<option value="">Select a school…</option>' + allSchools.map(s => `<option value="${s}">${s}</option>`).join("");
+  document.getElementById("assign-days-checkboxes").innerHTML = DAYS.map(d =>
+    `<label style="display:flex; align-items:center; gap:4px; font-size:0.8rem;"><input type="checkbox" class="assign-day-checkbox" value="${d}" style="width:auto;" />${d}</label>`
+  ).join("");
+
   const agg = buildDailyAggregates().filter(d => d.trainer === name).sort((a, b) => a.date < b.date ? 1 : -1);
   const mySessions = sessions.filter(s => s.Trainer === name).sort((a, b) => a.Date < b.Date ? 1 : -1);
 
@@ -1210,10 +1374,26 @@ function renderProfile() {
 // INIT
 // ================================================================
 checkConfig();
-if (checkConfig()) loadTrainerNames();
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(() => {});
 }
+
+(async function initApp() {
+  if (!checkConfig()) return;
+  const remembered = localStorage.getItem("uwr_remember_trainer");
+  if (remembered) {
+    try {
+      const result = await apiGet("getTrainerNames");
+      const names = result.names || [];
+      if (names.includes(remembered)) {
+        await completeLogin(remembered);
+        return;
+      }
+    } catch (err) { /* fall through to normal login screen */ }
+    forgetTrainer();
+  }
+  loadTrainerNames();
+})();
 </script>
 </body>
 </html>
