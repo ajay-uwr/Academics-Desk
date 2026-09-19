@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Daybook — Trainer Tracker</title>
+<title>UWR Academics Desk</title>
+<meta name="theme-color" content="#603D98" />
+<link rel="manifest" href="manifest.json" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -11,113 +13,105 @@
     --card: #FFFDF8;
     --ink: #20262B;
     --ink-soft: #5B6560;
-    --green: #2F4B3C;
-    --green-soft: #3F6350;
+    --green: #603D98;
+    --green-soft: #4C2F7A;
     --gold: #B9862E;
     --rose: #B5574A;
     --line: #DBD0B8;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
+    margin: 0; background: var(--paper); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   h1, h2, h3 { font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; margin: 0; }
   .hidden { display: none !important; }
-  .center-screen {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
+  .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .login-box { width: 100%; max-width: 420px; }
   .brand { text-align: center; margin-bottom: 28px; }
-  .brand h1 { font-size: 2rem; color: var(--ink); }
+  .brand h1 { font-size: 1.8rem; color: var(--ink); }
   .brand p { color: var(--ink-soft); font-size: 0.9rem; margin-top: 4px; }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-  }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
   .tabs { display: flex; font-size: 0.9rem; }
-  .tab-btn {
-    flex: 1; padding: 12px 0; background: none; border: none; cursor: pointer;
-    color: var(--ink-soft); border-bottom: 1px solid var(--line); font-family: inherit;
-  }
+  .tab-btn { flex: 1; padding: 12px 0; background: none; border: none; cursor: pointer; color: var(--ink-soft); border-bottom: 1px solid var(--line); font-family: inherit; }
   .tab-btn.active { color: var(--green); font-weight: 600; border-bottom: 2px solid var(--green); }
   .form-pad { padding: 24px; }
   label.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; margin-bottom: 14px; }
   label.field span.field-label { color: var(--ink-soft); }
-  input, select {
-    border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; font-size: 0.9rem;
-    background: #fff; color: var(--ink); font-family: inherit; width: 100%;
-  }
-  .btn-primary {
-    background: var(--green); color: var(--paper); border: none; border-radius: 6px;
-    padding: 10px 18px; font-size: 0.9rem; cursor: pointer; font-family: inherit;
-  }
+  input, select { border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; font-size: 0.9rem; background: #fff; color: var(--ink); font-family: inherit; width: 100%; }
+  .btn-primary { background: var(--green); color: var(--paper); border: none; border-radius: 6px; padding: 10px 18px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
   .btn-primary:hover { opacity: 0.9; }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-outline {
-    background: none; border: 1px solid var(--line); border-radius: 6px; padding: 9px 14px;
-    font-size: 0.85rem; cursor: pointer; color: var(--ink-soft); font-family: inherit;
-  }
+  .btn-outline { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 9px 14px; font-size: 0.85rem; cursor: pointer; color: var(--ink-soft); font-family: inherit; }
+  .btn-danger { background: none; border: none; color: var(--rose); cursor: pointer; font-size: 0.8rem; }
   .link-btn { background: none; border: none; color: var(--ink-soft); cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
   .error-text { color: var(--rose); font-size: 0.85rem; margin: 8px 0; }
   .success-text { color: var(--green-soft); font-size: 0.85rem; }
   .hint-text { color: var(--ink-soft); font-size: 0.78rem; }
 
-  header.app-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 24px; border-bottom: 1px solid var(--line);
-  }
-  header.app-header .brand-mini { display: flex; align-items: center; gap: 8px; font-size: 1.15rem; }
+  header.app-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 10px; }
+  header.app-header .brand-mini { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
   main.app-main { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
-  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
-  th { text-align: left; font-weight: 400; color: var(--ink-soft); padding: 8px 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.83rem; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-weight: 400; color: var(--ink-soft); padding: 8px 10px; white-space: nowrap; }
   th.num, td.num { text-align: right; }
-  td { padding: 8px 12px; border-top: 1px solid var(--line); }
+  td { padding: 8px 10px; border-top: 1px solid var(--line); }
   .empty-note { padding: 24px; color: var(--ink-soft); font-size: 0.9rem; }
 
-  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.75rem; color: #fff; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; color: #fff; white-space: nowrap; }
   .badge.under { background: var(--rose); }
   .badge.proper { background: var(--green); }
   .badge.over { background: var(--gold); }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.7rem; border: 1px solid var(--line); color: var(--ink-soft); }
 
   .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
   @media (max-width: 720px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
   .stat-card { padding: 14px 16px; }
-  .stat-label { font-size: 0.75rem; color: var(--ink-soft); }
-  .stat-value { font-size: 1.5rem; margin-top: 2px; }
-  .stat-sub { font-size: 0.72rem; color: var(--ink-soft); margin-top: 2px; }
+  .stat-label { font-size: 0.72rem; color: var(--ink-soft); }
+  .stat-value { font-size: 1.4rem; margin-top: 2px; }
+  .stat-sub { font-size: 0.7rem; color: var(--ink-soft); margin-top: 2px; }
 
   .filter-bar { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-bottom: 20px; }
-  .filter-bar label.field { margin-bottom: 0; min-width: 140px; }
+  .filter-bar label.field { margin-bottom: 0; min-width: 130px; }
 
   .chart-panel { padding: 16px; margin-bottom: 16px; }
   .chart-panel h3 { font-size: 0.85rem; font-weight: 400; color: var(--ink-soft); font-family: inherit; margin-bottom: 10px; }
   canvas { max-height: 260px; }
 
   .section-title { font-size: 0.85rem; color: var(--ink-soft); margin: 20px 0 10px; }
-  .config-banner {
-    background: var(--rose); color: #fff; padding: 10px 16px; font-size: 0.85rem; text-align: center;
-  }
+  .config-banner { background: var(--rose); color: #fff; padding: 10px 16px; font-size: 0.85rem; text-align: center; }
+
+  .admin-subnav { display: flex; gap: 8px; margin-bottom: 20px; }
+  .admin-subnav button { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px; font-size: 0.82rem; cursor: pointer; color: var(--ink-soft); font-family: inherit; }
+  .admin-subnav button.active { background: var(--green); color: var(--paper); border-color: var(--green); }
+
+  .trainer-card-list { display: flex; flex-direction: column; gap: 8px; }
+  .trainer-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; }
+  .trainer-card:hover { background: var(--paper); }
+  .trainer-card .name { font-size: 0.95rem; }
+  .trainer-card .meta { font-size: 0.75rem; color: var(--ink-soft); }
+
+  .profile-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .profile-header h2 { font-size: 1.3rem; }
+
+  .session-row-add { display: grid; grid-template-columns: 1fr 1fr 1.4fr 0.8fr 1.4fr auto; gap: 10px; align-items: end; margin-bottom: 10px; }
+  @media (max-width: 900px) { .session-row-add { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>
 <body>
 
-<!-- ============================================================= -->
-<!-- CONFIG — paste your deployed Apps Script Web App URL below    -->
-<!-- ============================================================= -->
 <script>
-  const CONFIG = {
-    WEB_APP_URL: "https://script.google.com/macros/s/AKfycby4AdwwWocRMb16sK_q7IkxJKlNbZpho0EbzyjSLY6NyfBqF0XOVbpQKWhFf0UmO-SJ/exec"
-  };
-  // Thresholds for the utilization classification (in hours out of an 8-hour day).
-  const UTIL = {
-    WORKDAY_HOURS: 8,
-    UNDER_MAX: 5,   // below this = under-utilized
-    OVER_MIN: 7.5   // above this = over-utilized
+  const CONFIG = { WEB_APP_URL: "PASTE_YOUR_APPS_SCRIPT_URL_HERE" };
+  const UTIL = { WORKDAY_HOURS: 8, UNDER_MAX: 5, OVER_MIN: 7.5 };
+  const SESSION_TYPES = ["Horizon Session", "One-on-One Session", "Webinar", "Competition Training", "Online Call", "Documentation", "Workshop", "Other"];
+  const TYPE_COLORS = {
+    "Horizon Session": "#603D98", "One-on-One Session": "#B9862E", "Webinar": "#8E9E93",
+    "Competition Training": "#B5574A", "Online Call": "#6D8CA6", "Documentation": "#A98BC1",
+    "Workshop": "#C9A15A", "Other": "#9C9284", "School": "#20262B"
   };
 </script>
 
@@ -129,8 +123,8 @@
 <div id="screen-login" class="center-screen">
   <div class="login-box">
     <div class="brand">
-      <h1>📖 Daybook</h1>
-      <p>Daily hours, clearly kept.</p>
+      <h1>Unique World Robotics</h1>
+      <p id="brand-subtitle">UWR Logbook — daily hours, clearly kept.</p>
     </div>
     <div class="card">
       <div class="tabs">
@@ -144,7 +138,6 @@
             <span class="field-label">Your name</span>
             <select id="login-name-select" onchange="onNameSelectChange()">
               <option value="">Loading…</option>
-              <option value="__new__">➕ I'm new here</option>
             </select>
           </label>
           <label class="field hidden" id="name-new-field">
@@ -172,100 +165,251 @@
         </form>
       </div>
     </div>
-    <p class="hint-text" style="text-align:center; margin-top:18px;">
-      Entries are shared across everyone using this Daybook — admins can see all trainers' logs.
-    </p>
+    <p class="hint-text" style="text-align:center; margin-top:18px;">Entries are shared across everyone using this Trainer Desk.</p>
   </div>
 </div>
 
-<!-- ============================ TRAINER ============================ -->
+<!-- ============================ TRAINER (own profile) ============================ -->
 <div id="screen-trainer" class="hidden">
   <header class="app-header">
-    <div class="brand-mini">📖 <strong>Daybook</strong></div>
+    <div class="brand-mini"><strong>UWR Logbook</strong></div>
     <div style="display:flex; align-items:center; gap:16px;">
       <span id="trainer-name-display" class="hint-text"></span>
       <button class="link-btn" onclick="logout()">Log out</button>
     </div>
   </header>
-  <main class="app-main" style="max-width: 760px;">
-    <div class="card" style="padding:24px; margin-bottom:28px;">
-      <h2 style="font-size:1.15rem; margin-bottom:16px;">Log your day</h2>
-      <form onsubmit="return handleSaveLog(event)">
-        <label class="field">
-          <span class="field-label">Date</span>
-          <input type="date" id="log-date" required />
-        </label>
-        <div class="grid-2">
-          <label class="field"><span class="field-label">Hours in school</span><input type="number" min="0" step="0.25" id="f-schoolHours" placeholder="0" /></label>
-          <label class="field"><span class="field-label">Break taken (minutes)</span><input type="number" min="0" step="5" id="f-breakMinutes" placeholder="0" /></label>
-          <label class="field"><span class="field-label">Hours of session taken at school</span><input type="number" min="0" step="0.25" id="f-sessionSchoolHours" placeholder="0" /></label>
-          <label class="field"><span class="field-label">Hours of sessions taken online</span><input type="number" min="0" step="0.25" id="f-sessionOnlineHours" placeholder="0" /></label>
-          <label class="field"><span class="field-label">Hours shadowing other trainers online</span><input type="number" min="0" step="0.25" id="f-shadowingHours" placeholder="0" /></label>
-          <label class="field"><span class="field-label">Other assignments (hours)</span><input type="number" min="0" step="0.25" id="f-otherAssignmentHours" placeholder="0" /></label>
+  <main class="app-main" style="max-width: 900px;">
+
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h2 style="font-size:1.1rem; margin-bottom:16px;">My profile</h2>
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;" id="trainer-avatar-wrap"></div>
+      <div class="grid-2">
+        <label class="field"><span class="field-label">Assigned school</span><input type="text" id="p-assignedSchool" placeholder="e.g. Greenwood High" /></label>
+        <label class="field"><span class="field-label">Photo URL (optional)</span><input type="text" id="p-photoUrl" placeholder="Link to an image of you" /></label>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn-primary" type="button" onclick="handleSaveMyProfile()">Save profile</button>
+        <span id="save-profile-success" class="success-text hidden">✓ Saved</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h2 style="font-size:1.1rem; margin-bottom:16px;">School plan &amp; progress</h2>
+      <label class="field" style="max-width:320px;">
+        <span class="field-label">School</span>
+        <select id="plan-school-select" onchange="renderSchoolPlanSection()"></select>
+      </label>
+      <div id="plan-file-info" style="margin-bottom:16px;"></div>
+
+      <h3 class="section-title" style="margin-top:4px;">Log a progress update</h3>
+      <form onsubmit="return handleAddProgress(event)">
+        <div class="grid-3">
+          <label class="field"><span class="field-label">Date</span><input type="date" id="pr-date" /></label>
+          <label class="field"><span class="field-label">% complete so far</span><input type="number" min="0" max="100" step="1" id="pr-percent" placeholder="0-100" /></label>
+          <label class="field"><span class="field-label">Topic covered</span><input type="text" id="pr-topic" placeholder="e.g. Up to Chapter 5: Sensors" /></label>
         </div>
-        <label class="field">
-          <span class="field-label">Remarks for other assignments (what was it?)</span>
-          <input type="text" id="f-otherAssignmentRemarks" placeholder="e.g. Record correction for Grade 8 batch" />
-        </label>
+        <label class="field"><span class="field-label">Remarks</span><input type="text" id="pr-remarks" placeholder="optional notes for the next trainer" /></label>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button class="btn-primary" type="submit">Add update</button>
+          <span id="progress-add-error" class="error-text hidden"></span>
+        </div>
+      </form>
+
+      <h3 class="section-title">Progress history</h3>
+      <div id="plan-progress-wrap"></div>
+    </div>
+
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h2 style="font-size:1.1rem; margin-bottom:16px;">Working date</h2>
+      <label class="field" style="max-width:220px; margin-bottom:0;">
+        <span class="field-label">Date</span>
+        <input type="date" id="working-date" onchange="onWorkingDateChange()" />
+      </label>
+    </div>
+
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h2 style="font-size:1.1rem; margin-bottom:16px;">School day</h2>
+      <form onsubmit="return handleSaveDailyLog(event)">
+        <div class="grid-3">
+          <label class="field"><span class="field-label">Login time</span><input type="time" id="f-loginTime" /></label>
+          <label class="field"><span class="field-label">Logout time</span><input type="time" id="f-logoutTime" /></label>
+          <label class="field"><span class="field-label">Break (minutes)</span><input type="number" min="0" step="5" id="f-breakMinutes" placeholder="0" /></label>
+          <label class="field"><span class="field-label">Free hours</span><input type="number" min="0" step="0.25" id="f-freeHours" placeholder="0" /></label>
+          <label class="field"><span class="field-label">Session hours at school</span><input type="number" min="0" step="0.25" id="f-schoolSessionHours" placeholder="0" /></label>
+        </div>
         <div style="display:flex; align-items:center; gap:12px; margin-top:6px;">
-          <button class="btn-primary" type="submit" id="save-log-btn">Save log</button>
-          <span id="save-log-success" class="success-text hidden">✓ Saved</span>
+          <button class="btn-primary" type="submit" id="save-daily-btn">Save school day</button>
+          <span id="save-daily-success" class="success-text hidden">✓ Saved</span>
         </div>
       </form>
     </div>
 
-    <h3 class="section-title">Your recent entries</h3>
-    <div class="card" id="trainer-history-wrap"></div>
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h2 style="font-size:1.1rem; margin-bottom:16px;">Add a session</h2>
+      <form onsubmit="return handleAddSession(event)">
+        <div class="session-row-add">
+          <label class="field" style="margin:0;"><span class="field-label">Mode</span>
+            <select id="s-mode"><option>Online</option><option>Offline</option></select>
+          </label>
+          <label class="field" style="margin:0;"><span class="field-label">Session type</span>
+            <select id="s-type"></select>
+          </label>
+          <label class="field" style="margin:0;"><span class="field-label">Course / topic</span>
+            <input type="text" id="s-course" placeholder="e.g. Horizon STCB" />
+          </label>
+          <label class="field" style="margin:0;"><span class="field-label">Hours</span>
+            <input type="number" min="0" step="0.25" id="s-hours" placeholder="0" />
+          </label>
+          <label class="field" style="margin:0;"><span class="field-label">Remarks</span>
+            <input type="text" id="s-remarks" placeholder="optional" />
+          </label>
+          <button class="btn-primary" type="submit">Add</button>
+        </div>
+      </form>
+      <div id="session-add-error" class="error-text hidden"></div>
+      <h3 class="section-title" style="margin-top:16px;">Sessions on this date</h3>
+      <div id="today-sessions-wrap"></div>
+    </div>
+
+    <h3 class="section-title">Your daily summary</h3>
+    <div class="card" id="trainer-summary-wrap" style="margin-bottom:20px;"></div>
+
+    <h3 class="section-title">All your session entries</h3>
+    <div class="card" id="trainer-sessions-wrap"></div>
   </main>
 </div>
 
 <!-- ============================ ADMIN ============================ -->
 <div id="screen-admin" class="hidden">
   <header class="app-header">
-    <div class="brand-mini">🛡 <strong>Daybook — Admin</strong></div>
+    <div class="brand-mini"><strong>UWR Academics Desk — Admin</strong></div>
     <button class="link-btn" onclick="logout()">Log out</button>
   </header>
   <main class="app-main">
-    <div class="filter-bar">
-      <label class="field">
-        <span class="field-label">View by</span>
-        <select id="filter-period" onchange="renderAdmin()">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="yearly">Yearly</option>
-        </select>
-      </label>
-      <label class="field">
-        <span class="field-label">Trainer</span>
-        <select id="filter-trainer" onchange="renderAdmin()"><option value="all">All trainers</option></select>
-      </label>
-      <label class="field">
-        <span class="field-label">From</span>
-        <input type="date" id="filter-from" onchange="renderAdmin()" />
-      </label>
-      <label class="field">
-        <span class="field-label">To</span>
-        <input type="date" id="filter-to" onchange="renderAdmin()" />
-      </label>
-      <button class="btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+    <div class="admin-subnav">
+      <button id="subnav-overview" onclick="setAdminView('overview')" class="active">Overview</button>
+      <button id="subnav-trainers" onclick="setAdminView('directory')">Trainers</button>
+      <button id="subnav-schools" onclick="setAdminView('school-directory')">Schools</button>
     </div>
 
-    <div class="stat-grid">
-      <div class="card stat-card"><div class="stat-label">Trainers</div><div class="stat-value" id="stat-trainers">0</div></div>
-      <div class="card stat-card"><div class="stat-label">Under-utilized days</div><div class="stat-value" id="stat-under">0</div></div>
-      <div class="card stat-card"><div class="stat-label">Properly utilized days</div><div class="stat-value" id="stat-proper">0</div></div>
-      <div class="card stat-card"><div class="stat-label">Over-utilized days</div><div class="stat-value" id="stat-over">0</div></div>
+    <!-- OVERVIEW -->
+    <div id="admin-view-overview">
+      <div class="filter-bar">
+        <label class="field"><span class="field-label">View by</span>
+          <select id="filter-period" onchange="renderOverview()">
+            <option value="daily">Daily</option><option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option><option value="yearly">Yearly</option>
+          </select>
+        </label>
+        <label class="field"><span class="field-label">Trainer</span>
+          <select id="filter-trainer" onchange="renderOverview()"><option value="all">All trainers</option></select>
+        </label>
+        <label class="field"><span class="field-label">From</span><input type="date" id="filter-from" onchange="renderOverview()" /></label>
+        <label class="field"><span class="field-label">To</span><input type="date" id="filter-to" onchange="renderOverview()" /></label>
+        <button class="btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="card stat-card"><div class="stat-label">Trainers</div><div class="stat-value" id="stat-trainers">0</div></div>
+        <div class="card stat-card"><div class="stat-label">Under-utilized days</div><div class="stat-value" id="stat-under">0</div></div>
+        <div class="card stat-card"><div class="stat-label">Properly utilized days</div><div class="stat-value" id="stat-proper">0</div></div>
+        <div class="card stat-card"><div class="stat-label">Over-utilized days</div><div class="stat-value" id="stat-over">0</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card chart-panel"><h3>Hours by trainer, by session type</h3><canvas id="chart-hours"></canvas></div>
+        <div class="card chart-panel"><h3>Utilization % by trainer</h3><canvas id="chart-util"></canvas></div>
+      </div>
+      <div class="card chart-panel"><h3>Trend over time</h3><canvas id="chart-trend"></canvas></div>
+
+      <h3 class="section-title" id="table-title">All daily entries</h3>
+      <div class="card" id="admin-table-wrap" style="overflow-x:auto;"></div>
     </div>
 
-    <div class="grid-2">
-      <div class="card chart-panel"><h3>Productive hours by trainer</h3><canvas id="chart-hours"></canvas></div>
-      <div class="card chart-panel"><h3>Utilization % by trainer</h3><canvas id="chart-util"></canvas></div>
+    <!-- TRAINERS DIRECTORY -->
+    <div id="admin-view-directory" class="hidden">
+      <label class="field" style="max-width:360px;">
+        <span class="field-label">Search trainers</span>
+        <input type="text" id="trainer-search" placeholder="Type a name…" oninput="renderDirectory()" />
+      </label>
+      <div class="card">
+        <div class="trainer-card-list" id="trainer-directory-list"></div>
+      </div>
     </div>
-    <div class="card chart-panel"><h3>Trend over time</h3><canvas id="chart-trend"></canvas></div>
 
-    <h3 class="section-title" id="table-title">All entries</h3>
-    <div class="card" id="admin-table-wrap" style="overflow-x:auto;"></div>
+    <!-- TRAINER PROFILE (admin view of one trainer) -->
+    <div id="admin-view-profile" class="hidden">
+      <button class="link-btn" onclick="setAdminView('directory')" style="margin-bottom:16px;">← Back to trainers</button>
+    <div class="profile-header">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div id="profile-avatar-wrap"></div>
+        <h2 id="profile-name"></h2>
+      </div>
+    </div>
+    <div class="card" style="padding:20px; margin-bottom:20px;">
+      <div class="grid-2">
+        <label class="field"><span class="field-label">Assigned school</span><input type="text" id="profile-assignedSchool" /></label>
+        <label class="field"><span class="field-label">Photo URL</span><input type="text" id="profile-photoUrl" /></label>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn-primary" type="button" onclick="handleSaveProfileInfo()">Save</button>
+        <span id="save-profile-info-success" class="success-text hidden">✓ Saved</span>
+      </div>
+    </div>
+      <div class="stat-grid" id="profile-stat-grid"></div>
+      <div class="grid-2">
+        <div class="card chart-panel"><h3>Hours by session type</h3><canvas id="chart-profile-type"></canvas></div>
+        <div class="card chart-panel"><h3>Trend over time</h3><canvas id="chart-profile-trend"></canvas></div>
+      </div>
+      <h3 class="section-title">Daily summary</h3>
+      <div class="card" id="profile-summary-wrap" style="margin-bottom:20px;"></div>
+      <h3 class="section-title">Session entries</h3>
+      <div class="card" id="profile-sessions-wrap"></div>
+    </div>
+
+    <!-- SCHOOLS DIRECTORY -->
+    <div id="admin-view-school-directory" class="hidden">
+      <div style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px;">
+        <label class="field" style="max-width:320px; margin-bottom:0;">
+          <span class="field-label">Search schools</span>
+          <input type="text" id="school-search" placeholder="Type a school name…" oninput="renderSchoolDirectory()" />
+        </label>
+        <label class="field" style="max-width:280px; margin-bottom:0;">
+          <span class="field-label">Add a new school</span>
+          <input type="text" id="new-school-name" placeholder="e.g. Greenwood High" />
+        </label>
+        <button class="btn-primary" type="button" onclick="handleAddSchool()">Add school</button>
+      </div>
+      <div id="add-school-error" class="error-text hidden"></div>
+      <div class="card">
+        <div class="trainer-card-list" id="school-directory-list"></div>
+      </div>
+    </div>
+
+    <!-- SCHOOL PROFILE -->
+    <div id="admin-view-school-profile" class="hidden">
+      <button class="link-btn" onclick="setAdminView('school-directory')" style="margin-bottom:16px;">← Back to schools</button>
+      <div class="profile-header"><h2 id="school-profile-name"></h2></div>
+
+      <div class="card" style="padding:20px; margin-bottom:20px;">
+        <h3 class="section-title" style="margin-top:0;">Yearly plan (PDF)</h3>
+        <div id="school-plan-file-info" style="margin-bottom:12px;"></div>
+        <label class="field" style="max-width:360px;">
+          <span class="field-label">Upload / replace plan PDF</span>
+          <input type="file" id="school-plan-file-input" accept="application/pdf" />
+        </label>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button class="btn-primary" type="button" onclick="handleUploadSchoolPlan()" id="upload-plan-btn">Upload</button>
+          <span id="upload-plan-error" class="error-text hidden"></span>
+          <span id="upload-plan-success" class="success-text hidden">✓ Uploaded</span>
+        </div>
+      </div>
+
+      <div class="card chart-panel"><h3>Progress over time</h3><canvas id="chart-school-progress"></canvas></div>
+
+      <h3 class="section-title">Progress history</h3>
+      <div id="school-progress-wrap"></div>
+    </div>
   </main>
 </div>
 
@@ -274,8 +418,35 @@
 // STATE
 // ================================================================
 let currentTrainer = null;
-let allLogs = [];
+let dailyLogs = [];
+let sessions = [];
+let trainerProfiles = [];
+let schools = [];
+let planProgress = [];
+let knownTrainerNames = [];
 let charts = {};
+let adminView = "overview";
+let profileTrainerName = null;
+
+const AVATAR_PALETTE = ["#603D98", "#B9862E", "#B5574A", "#6D8CA6", "#A98BC1"];
+function initialsOf(name) {
+  return (name || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+}
+function avatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < (name || "").length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
+}
+function renderAvatar(name, photoUrl, size) {
+  size = size || 40;
+  if (photoUrl) {
+    return `<img src="${photoUrl}" onerror="this.replaceWith(Object.assign(document.createElement('div'), {innerHTML: renderAvatar('${name.replace(/'/g, "")}', '', ${size})}).firstChild)" style="width:${size}px; height:${size}px; border-radius:50%; object-fit:cover;" />`;
+  }
+  return `<div style="width:${size}px; height:${size}px; border-radius:50%; background:${avatarColor(name)}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:${size * 0.4}px; font-family:inherit;">${initialsOf(name)}</div>`;
+}
+function getTrainerProfile(name) {
+  return trainerProfiles.find(t => t.Name === name) || { Name: name, AssignedSchool: "", PhotoUrl: "" };
+}
 
 // ================================================================
 // API HELPERS
@@ -291,7 +462,6 @@ async function apiPost(payload) {
   const res = await fetch(CONFIG.WEB_APP_URL, { method: "POST", body: JSON.stringify(payload) });
   return res.json();
 }
-
 function checkConfig() {
   if (!CONFIG.WEB_APP_URL || CONFIG.WEB_APP_URL.indexOf("PASTE_YOUR") === 0) {
     document.getElementById("config-banner").classList.remove("hidden");
@@ -301,19 +471,53 @@ function checkConfig() {
 }
 
 // ================================================================
-// UTILIZATION LOGIC
+// UTILIZATION LOGIC (shared)
 // ================================================================
-function productiveHours(log) {
-  return (Number(log.SessionSchoolHours) || 0) + (Number(log.SessionOnlineHours) || 0) +
-         (Number(log.ShadowingHours) || 0) + (Number(log.OtherAssignmentHours) || 0);
+function keyOf(trainer, date) { return trainer + "||" + date; }
+
+function buildDailyAggregates() {
+  const map = {};
+  dailyLogs.forEach(l => {
+    const k = keyOf(l.Trainer, l.Date);
+    map[k] = map[k] || { trainer: l.Trainer, date: l.Date, schoolHours: 0, sessionHours: 0, loginTime: "", logoutTime: "", breakMinutes: 0, freeHours: 0 };
+    map[k].schoolHours = Number(l.SchoolSessionHours) || 0;
+    map[k].loginTime = l.LoginTime; map[k].logoutTime = l.LogoutTime;
+    map[k].breakMinutes = Number(l.BreakMinutes) || 0; map[k].freeHours = Number(l.FreeHours) || 0;
+  });
+  sessions.forEach(s => {
+    const k = keyOf(s.Trainer, s.Date);
+    map[k] = map[k] || { trainer: s.Trainer, date: s.Date, schoolHours: 0, sessionHours: 0, loginTime: "", logoutTime: "", breakMinutes: 0, freeHours: 0 };
+    map[k].sessionHours += Number(s.Hours) || 0;
+  });
+  return Object.values(map).map(d => {
+    d.total = d.schoolHours + d.sessionHours;
+    d.band = utilizationBand(d.total);
+    return d;
+  });
 }
 function utilizationBand(hours) {
   if (hours < UTIL.UNDER_MAX) return "under";
   if (hours > UTIL.OVER_MIN) return "over";
   return "proper";
 }
-function bandLabel(band) {
-  return band === "under" ? "Under-utilized" : band === "over" ? "Over-utilized" : "Properly utilized";
+function bandLabel(band) { return band === "under" ? "Under-utilized" : band === "over" ? "Over-utilized" : "Properly utilized"; }
+
+function isoWeek(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  const week = 1 + Math.round((firstThursday - target.valueOf()) / (7 * 86400000));
+  return d.getFullYear() + "-W" + String(week).padStart(2, "0");
+}
+function bucketKey(dateStr, period) {
+  if (period === "weekly") return isoWeek(dateStr);
+  if (period === "monthly") return dateStr.slice(0, 7);
+  if (period === "yearly") return dateStr.slice(0, 4);
+  return dateStr;
 }
 
 // ================================================================
@@ -324,24 +528,21 @@ function switchLoginTab(tab) {
   document.getElementById("tab-admin-btn").classList.toggle("active", tab === "admin");
   document.getElementById("tab-trainer-panel").classList.toggle("hidden", tab !== "trainer");
   document.getElementById("tab-admin-panel").classList.toggle("hidden", tab !== "admin");
+  document.getElementById("brand-subtitle").textContent = tab === "admin"
+    ? "UWR Academics Desk — manage trainers & schools."
+    : "UWR Logbook — daily hours, clearly kept.";
 }
-
-let knownTrainerNames = [];
 
 async function loadTrainerNames() {
   const sel = document.getElementById("login-name-select");
   try {
     const result = await apiGet("getTrainerNames");
     knownTrainerNames = (result.names || []).slice().sort();
-  } catch (err) {
-    knownTrainerNames = [];
-  }
-  sel.innerHTML =
-    '<option value="">Select your name…</option>' +
+  } catch (err) { knownTrainerNames = []; }
+  sel.innerHTML = '<option value="">Select your name…</option>' +
     knownTrainerNames.map(n => `<option value="${n}">${n}</option>`).join("") +
     '<option value="__new__">➕ I\'m new here</option>';
 }
-
 function onNameSelectChange() {
   const isNew = document.getElementById("login-name-select").value === "__new__";
   document.getElementById("name-new-field").classList.toggle("hidden", !isNew);
@@ -360,11 +561,9 @@ async function handleTrainerLogin(e) {
   if (selectVal === "__new__") {
     name = document.getElementById("login-name-new").value.trim();
     if (!name) { errEl.textContent = "Type your name."; errEl.classList.remove("hidden"); return false; }
-    // Guard against accidentally re-registering someone already on the list
-    // (e.g. typed with different capitalization or spacing).
     const collision = knownTrainerNames.find(n => n.toLowerCase() === name.toLowerCase());
     if (collision) {
-      errEl.textContent = `"${collision}" is already on the list above — please select it instead of registering again.`;
+      errEl.textContent = `"${collision}" is already on the list above — please select it instead.`;
       errEl.classList.remove("hidden");
       return false;
     }
@@ -382,7 +581,7 @@ async function handleTrainerLogin(e) {
     const result = await apiPost({ action: "login", name, passcode });
     if (result.status === "ok") {
       currentTrainer = result.name;
-      await loadAllLogs();
+      await loadAllData();
       showScreen("trainer");
     } else {
       errEl.textContent = result.message || "Login failed.";
@@ -405,7 +604,7 @@ async function handleAdminLogin(e) {
   try {
     const result = await apiPost({ action: "adminLogin", passcode });
     if (result.status === "ok") {
-      await loadAllLogs();
+      await loadAllData();
       showScreen("admin");
     } else {
       errEl.textContent = result.message || "Incorrect passcode.";
@@ -420,6 +619,7 @@ async function handleAdminLogin(e) {
 
 function logout() {
   currentTrainer = null;
+  location.hash = "";
   showScreen("login");
   loadTrainerNames();
 }
@@ -428,256 +628,590 @@ function showScreen(name) {
   ["login", "trainer", "admin"].forEach(s => document.getElementById("screen-" + s).classList.toggle("hidden", s !== name));
   if (name === "trainer") {
     document.getElementById("trainer-name-display").textContent = currentTrainer;
-    document.getElementById("log-date").value = new Date().toISOString().slice(0, 10);
+    const typeSel = document.getElementById("s-type");
+    if (!typeSel.options.length) typeSel.innerHTML = SESSION_TYPES.map(t => `<option>${t}</option>`).join("");
+    document.getElementById("working-date").value = new Date().toISOString().slice(0, 10);
+    document.getElementById("working-date").max = new Date().toISOString().slice(0, 10);
+    onWorkingDateChange();
     renderTrainerHistory();
+    renderMyProfileCard();
+    document.getElementById("pr-date").value = new Date().toISOString().slice(0, 10);
+    document.getElementById("pr-date").max = new Date().toISOString().slice(0, 10);
+    populateSchoolSelect();
   }
   if (name === "admin") {
     populateTrainerFilter();
-    renderAdmin();
+    const hash = location.hash;
+    if (hash.indexOf("#profile/") === 0) {
+      profileTrainerName = decodeURIComponent(hash.slice(9));
+      setAdminView("profile");
+    } else if (hash.indexOf("#school/") === 0) {
+      profileSchoolName = decodeURIComponent(hash.slice(8));
+      setAdminView("school-profile");
+    } else {
+      setAdminView("overview");
+    }
   }
 }
 
 // ================================================================
 // DATA LOADING
 // ================================================================
-async function loadAllLogs() {
-  const result = await apiGet("getLogs");
-  allLogs = (result.logs || []).map(l => ({
-    trainer: l.Trainer, date: l.Date,
-    schoolHours: Number(l.SchoolHours) || 0,
-    breakMinutes: Number(l.BreakMinutes) || 0,
-    sessionSchoolHours: Number(l.SessionSchoolHours) || 0,
-    sessionOnlineHours: Number(l.SessionOnlineHours) || 0,
-    shadowingHours: Number(l.ShadowingHours) || 0,
-    otherAssignmentHours: Number(l.OtherAssignmentHours) || 0,
-    otherAssignmentRemarks: l.OtherAssignmentRemarks || ""
-  }));
+async function loadAllData() {
+  const result = await apiGet("getAll");
+  dailyLogs = result.dailyLogs || [];
+  sessions = result.sessions || [];
+  trainerProfiles = result.trainers || [];
+  schools = result.schools || [];
+  planProgress = result.planProgress || [];
+}
+
+async function saveTrainerInfo(name, assignedSchool, photoUrl) {
+  await apiPost({ action: "updateTrainerInfo", name, assignedSchool, photoUrl });
+  await loadAllData();
+}
+
+function renderMyProfileCard() {
+  const info = getTrainerProfile(currentTrainer);
+  document.getElementById("trainer-avatar-wrap").innerHTML =
+    renderAvatar(currentTrainer, info.PhotoUrl, 56) + `<div><strong>${currentTrainer}</strong></div>`;
+  document.getElementById("p-assignedSchool").value = info.AssignedSchool || "";
+  document.getElementById("p-photoUrl").value = info.PhotoUrl || "";
+}
+async function handleSaveMyProfile() {
+  const success = document.getElementById("save-profile-success");
+  await saveTrainerInfo(currentTrainer, document.getElementById("p-assignedSchool").value, document.getElementById("p-photoUrl").value);
+  renderMyProfileCard();
+  success.classList.remove("hidden");
+  setTimeout(() => success.classList.add("hidden"), 2000);
 }
 
 // ================================================================
-// TRAINER DASHBOARD
+// SCHOOL PLAN & PROGRESS (shared by trainer + admin views)
 // ================================================================
-async function handleSaveLog(e) {
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function schoolNamesList() {
+  const fromRegistry = schools.map(s => s.SchoolName);
+  const fromTrainers = trainerProfiles.map(t => t.AssignedSchool).filter(Boolean);
+  return [...new Set(fromRegistry.concat(fromTrainers))].sort();
+}
+
+function populateSchoolSelect() {
+  const sel = document.getElementById("plan-school-select");
+  const names = schoolNamesList();
+  const myInfo = getTrainerProfile(currentTrainer);
+  sel.innerHTML = names.length
+    ? names.map(n => `<option value="${n}">${n}</option>`).join("")
+    : '<option value="">No schools registered yet</option>';
+  if (myInfo.AssignedSchool && names.includes(myInfo.AssignedSchool)) sel.value = myInfo.AssignedSchool;
+  renderSchoolPlanSection();
+}
+
+function latestProgressFor(schoolName) {
+  const entries = planProgress.filter(p => p.School === schoolName).sort((a, b) => a.Date < b.Date ? 1 : -1);
+  return entries[0] || null;
+}
+
+function renderSchoolPlanSection() {
+  const schoolName = document.getElementById("plan-school-select").value;
+  const info = schools.find(s => s.SchoolName === schoolName);
+  const fileWrap = document.getElementById("plan-file-info");
+  if (!schoolName) {
+    fileWrap.innerHTML = '<p class="hint-text">Set an assigned school in "My profile" above, or ask admin to register one.</p>';
+  } else if (info && info.PlanFileUrl) {
+    fileWrap.innerHTML = `<p class="hint-text">📄 <a href="${info.PlanFileUrl}" target="_blank" rel="noopener">${info.PlanFileName || "Yearly plan"}</a> — updated ${info.PlanUpdatedAt ? new Date(info.PlanUpdatedAt).toLocaleDateString() : ""}</p>`;
+  } else {
+    fileWrap.innerHTML = '<p class="hint-text">No yearly plan PDF uploaded yet for this school — ask admin to add one.</p>';
+  }
+  renderProgressList("plan-progress-wrap", schoolName, true);
+}
+
+function renderProgressList(containerId, schoolName, allowDelete) {
+  const wrap = document.getElementById(containerId);
+  const entries = planProgress.filter(p => p.School === schoolName).sort((a, b) => a.Date < b.Date ? 1 : -1);
+  if (entries.length === 0) { wrap.innerHTML = '<p class="empty-note">No progress logged yet for this school.</p>'; return; }
+  wrap.innerHTML = `<table><thead><tr><th>Date</th><th>Trainer</th><th class="num">% complete</th><th>Topic covered</th><th>Remarks</th>${allowDelete ? "<th></th>" : ""}</tr></thead><tbody>
+    ${entries.map(p => `<tr>
+      <td>${p.Date}</td><td>${p.Trainer}</td><td class="num">${p.PercentComplete}%</td>
+      <td>${p.TopicCovered || ""}</td><td>${p.Remarks || ""}</td>
+      ${allowDelete ? `<td><button class="btn-danger" onclick="deleteProgressEntry('${p.Id}')">Delete</button></td>` : ""}
+    </tr>`).join("")}
+  </tbody></table>`;
+}
+
+async function handleAddProgress(e) {
   e.preventDefault();
-  const btn = document.getElementById("save-log-btn");
-  const success = document.getElementById("save-log-success");
-  btn.disabled = true; btn.textContent = "Saving…";
+  const errEl = document.getElementById("progress-add-error");
+  errEl.classList.add("hidden");
+  const schoolName = document.getElementById("plan-school-select").value;
+  if (!schoolName) { errEl.textContent = "Select a school first."; errEl.classList.remove("hidden"); return false; }
   const payload = {
-    action: "saveLog",
+    action: "saveProgress",
+    school: schoolName,
+    date: document.getElementById("pr-date").value,
     trainer: currentTrainer,
-    date: document.getElementById("log-date").value,
-    schoolHours: document.getElementById("f-schoolHours").value || 0,
-    breakMinutes: document.getElementById("f-breakMinutes").value || 0,
-    sessionSchoolHours: document.getElementById("f-sessionSchoolHours").value || 0,
-    sessionOnlineHours: document.getElementById("f-sessionOnlineHours").value || 0,
-    shadowingHours: document.getElementById("f-shadowingHours").value || 0,
-    otherAssignmentHours: document.getElementById("f-otherAssignmentHours").value || 0,
-    otherAssignmentRemarks: document.getElementById("f-otherAssignmentRemarks").value || ""
+    percentComplete: document.getElementById("pr-percent").value || 0,
+    topicCovered: document.getElementById("pr-topic").value,
+    remarks: document.getElementById("pr-remarks").value
   };
   try {
     await apiPost(payload);
-    await loadAllLogs();
-    renderTrainerHistory();
-    success.classList.remove("hidden");
-    setTimeout(() => success.classList.add("hidden"), 2500);
-  } catch (err) {
-    alert("Could not save your log. Please check your connection and try again.");
-  }
-  btn.disabled = false; btn.textContent = "Save log";
+    await loadAllData();
+    document.getElementById("pr-topic").value = "";
+    document.getElementById("pr-remarks").value = "";
+    renderSchoolPlanSection();
+  } catch (err) { errEl.textContent = "Could not save. Try again."; errEl.classList.remove("hidden"); }
   return false;
 }
 
-function renderTrainerHistory() {
-  const mine = allLogs.filter(l => l.trainer === currentTrainer).sort((a, b) => a.date < b.date ? 1 : -1);
-  const wrap = document.getElementById("trainer-history-wrap");
-  if (mine.length === 0) {
-    wrap.innerHTML = '<p class="empty-note">No entries yet — add your first one above.</p>';
-    return;
-  }
-  let rows = mine.map(l => {
-    const hrs = productiveHours(l);
-    const band = utilizationBand(hrs);
-    return `<tr>
-      <td>${l.date}</td>
-      <td class="num">${hrs.toFixed(2)}h</td>
-      <td><span class="badge ${band}">${bandLabel(band)}</span></td>
-      <td class="num">${l.sessionSchoolHours}h</td>
-      <td class="num">${l.sessionOnlineHours}h</td>
-      <td class="num">${l.shadowingHours}h</td>
-      <td class="num">${l.otherAssignmentHours}h</td>
-    </tr>`;
-  }).join("");
-  wrap.innerHTML = `<table>
-    <thead><tr><th>Date</th><th class="num">Productive</th><th>Status</th><th class="num">School</th><th class="num">Online</th><th class="num">Shadowing</th><th class="num">Other</th></tr></thead>
-    <tbody>${rows}</tbody></table>`;
+async function deleteProgressEntry(id) {
+  if (!confirm("Delete this progress update?")) return;
+  try {
+    await apiPost({ action: "deleteProgress", id });
+    await loadAllData();
+    if (!document.getElementById("screen-trainer").classList.contains("hidden")) renderSchoolPlanSection();
+    if (!document.getElementById("screen-admin").classList.contains("hidden") && adminView === "school-profile") renderSchoolProfile();
+  } catch (err) { alert("Could not delete. Try again."); }
 }
 
 // ================================================================
-// ADMIN DASHBOARD
+// TRAINER — SCHOOL DAY + SESSIONS
+// ================================================================
+function onWorkingDateChange() {
+  const date = document.getElementById("working-date").value;
+  const existing = dailyLogs.find(l => l.Trainer === currentTrainer && l.Date === date);
+  document.getElementById("f-loginTime").value = existing ? existing.LoginTime : "";
+  document.getElementById("f-logoutTime").value = existing ? existing.LogoutTime : "";
+  document.getElementById("f-breakMinutes").value = existing ? existing.BreakMinutes : "";
+  document.getElementById("f-freeHours").value = existing ? existing.FreeHours : "";
+  document.getElementById("f-schoolSessionHours").value = existing ? existing.SchoolSessionHours : "";
+  renderTodaySessions();
+}
+
+async function handleSaveDailyLog(e) {
+  e.preventDefault();
+  const btn = document.getElementById("save-daily-btn");
+  const success = document.getElementById("save-daily-success");
+  btn.disabled = true; btn.textContent = "Saving…";
+  const payload = {
+    action: "saveDailyLog", trainer: currentTrainer,
+    date: document.getElementById("working-date").value,
+    loginTime: document.getElementById("f-loginTime").value,
+    logoutTime: document.getElementById("f-logoutTime").value,
+    breakMinutes: document.getElementById("f-breakMinutes").value || 0,
+    freeHours: document.getElementById("f-freeHours").value || 0,
+    schoolSessionHours: document.getElementById("f-schoolSessionHours").value || 0
+  };
+  try {
+    await apiPost(payload);
+    await loadAllData();
+    renderTrainerHistory();
+    success.classList.remove("hidden");
+    setTimeout(() => success.classList.add("hidden"), 2000);
+  } catch (err) { alert("Could not save. Check your connection and try again."); }
+  btn.disabled = false; btn.textContent = "Save school day";
+  return false;
+}
+
+async function handleAddSession(e) {
+  e.preventDefault();
+  const errEl = document.getElementById("session-add-error");
+  errEl.classList.add("hidden");
+  const hours = Number(document.getElementById("s-hours").value);
+  if (!hours || hours <= 0) { errEl.textContent = "Enter hours greater than 0."; errEl.classList.remove("hidden"); return false; }
+  const payload = {
+    action: "saveSession", trainer: currentTrainer,
+    date: document.getElementById("working-date").value,
+    mode: document.getElementById("s-mode").value,
+    sessionType: document.getElementById("s-type").value,
+    courseTopic: document.getElementById("s-course").value,
+    hours: hours,
+    remarks: document.getElementById("s-remarks").value
+  };
+  try {
+    await apiPost(payload);
+    await loadAllData();
+    document.getElementById("s-course").value = "";
+    document.getElementById("s-hours").value = "";
+    document.getElementById("s-remarks").value = "";
+    renderTodaySessions();
+    renderTrainerHistory();
+  } catch (err) { errEl.textContent = "Could not save. Try again."; errEl.classList.remove("hidden"); }
+  return false;
+}
+
+async function deleteSessionEntry(id) {
+  if (!confirm("Delete this session entry?")) return;
+  try {
+    await apiPost({ action: "deleteSession", id });
+    await loadAllData();
+    renderTodaySessions();
+    renderTrainerHistory();
+    if (document.getElementById("screen-admin").classList.contains("hidden") === false) {
+      if (adminView === "profile") renderProfile(); else renderOverview();
+    }
+  } catch (err) { alert("Could not delete. Try again."); }
+}
+
+function renderTodaySessions() {
+  const date = document.getElementById("working-date").value;
+  const mine = sessions.filter(s => s.Trainer === currentTrainer && s.Date === date);
+  const wrap = document.getElementById("today-sessions-wrap");
+  if (mine.length === 0) { wrap.innerHTML = '<p class="hint-text">No sessions added for this date yet.</p>'; return; }
+  wrap.innerHTML = mine.map(s => `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:0.85rem;">
+      <span><span class="chip">${s.Mode}</span> <strong>${s.SessionType}</strong> ${s.CourseTopic ? "— " + s.CourseTopic : ""} · ${s.Hours}h ${s.Remarks ? "· " + s.Remarks : ""}</span>
+      <button class="btn-danger" onclick="deleteSessionEntry('${s.Id}')">Delete</button>
+    </div>`).join("");
+}
+
+function renderTrainerHistory() {
+  const agg = buildDailyAggregates().filter(d => d.trainer === currentTrainer).sort((a, b) => a.date < b.date ? 1 : -1);
+  const summaryWrap = document.getElementById("trainer-summary-wrap");
+  if (agg.length === 0) {
+    summaryWrap.innerHTML = '<p class="empty-note">No entries yet — start with today above.</p>';
+  } else {
+    summaryWrap.innerHTML = `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
+      ${agg.map(d => `<tr><td>${d.date}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+    </tbody></table>`;
+  }
+
+  const mySessions = sessions.filter(s => s.Trainer === currentTrainer).sort((a, b) => a.Date < b.Date ? 1 : -1);
+  const sessWrap = document.getElementById("trainer-sessions-wrap");
+  if (mySessions.length === 0) {
+    sessWrap.innerHTML = '<p class="empty-note">No session entries yet.</p>';
+  } else {
+    sessWrap.innerHTML = `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th></th></tr></thead><tbody>
+      ${mySessions.map(s => `<tr><td>${s.Date}</td><td>${s.Mode}</td><td>${s.SessionType}</td><td>${s.CourseTopic || ""}</td><td class="num">${s.Hours}h</td><td>${s.Remarks || ""}</td><td><button class="btn-danger" onclick="deleteSessionEntry('${s.Id}')">Delete</button></td></tr>`).join("")}
+    </tbody></table>`;
+  }
+}
+
+// ================================================================
+// ADMIN — NAV
+// ================================================================
+let profileSchoolName = null;
+
+function setAdminView(view) {
+  adminView = view;
+  document.getElementById("subnav-overview").classList.toggle("active", view === "overview");
+  document.getElementById("subnav-trainers").classList.toggle("active", view === "directory" || view === "profile");
+  document.getElementById("subnav-schools").classList.toggle("active", view === "school-directory" || view === "school-profile");
+  document.getElementById("admin-view-overview").classList.toggle("hidden", view !== "overview");
+  document.getElementById("admin-view-directory").classList.toggle("hidden", view !== "directory");
+  document.getElementById("admin-view-profile").classList.toggle("hidden", view !== "profile");
+  document.getElementById("admin-view-school-directory").classList.toggle("hidden", view !== "school-directory");
+  document.getElementById("admin-view-school-profile").classList.toggle("hidden", view !== "school-profile");
+  if (view === "overview") { location.hash = ""; renderOverview(); }
+  if (view === "directory") { location.hash = ""; renderDirectory(); }
+  if (view === "profile") { location.hash = "profile/" + encodeURIComponent(profileTrainerName); renderProfile(); }
+  if (view === "school-directory") { location.hash = ""; renderSchoolDirectory(); }
+  if (view === "school-profile") { location.hash = "school/" + encodeURIComponent(profileSchoolName); renderSchoolProfile(); }
+}
+function openProfile(name) { profileTrainerName = name; setAdminView("profile"); }
+function openSchoolProfile(name) { profileSchoolName = name; setAdminView("school-profile"); }
+async function handleSaveProfileInfo() {
+  const success = document.getElementById("save-profile-info-success");
+  await saveTrainerInfo(profileTrainerName, document.getElementById("profile-assignedSchool").value, document.getElementById("profile-photoUrl").value);
+  renderProfile();
+  success.classList.remove("hidden");
+  setTimeout(() => success.classList.add("hidden"), 2000);
+}
+
+function renderSchoolDirectory() {
+  const q = (document.getElementById("school-search").value || "").toLowerCase();
+  const names = schoolNamesList().filter(n => n.toLowerCase().includes(q));
+  const wrap = document.getElementById("school-directory-list");
+  if (names.length === 0) { wrap.innerHTML = '<p class="empty-note">No schools match your search.</p>'; return; }
+  wrap.innerHTML = names.map(n => {
+    const latest = latestProgressFor(n);
+    const info = schools.find(s => s.SchoolName === n);
+    return `<div class="trainer-card" onclick="openSchoolProfile('${n}')">
+      <span><div class="name">${n}</div><div class="meta">${info && info.PlanFileUrl ? "Plan uploaded" : "No plan uploaded yet"}</div></span>
+      <span class="meta">${latest ? latest.PercentComplete + "% complete" : "No progress logged"}</span>
+    </div>`;
+  }).join("");
+}
+
+async function handleAddSchool() {
+  const errEl = document.getElementById("add-school-error");
+  errEl.classList.add("hidden");
+  const name = document.getElementById("new-school-name").value.trim();
+  if (!name) { errEl.textContent = "Type a school name."; errEl.classList.remove("hidden"); return; }
+  try {
+    const result = await apiPost({ action: "addSchool", schoolName: name });
+    if (result.status !== "ok") { errEl.textContent = result.message; errEl.classList.remove("hidden"); return; }
+    await loadAllData();
+    document.getElementById("new-school-name").value = "";
+    renderSchoolDirectory();
+  } catch (err) { errEl.textContent = "Could not add school. Try again."; errEl.classList.remove("hidden"); }
+}
+
+function renderSchoolProfile() {
+  const name = profileSchoolName;
+  document.getElementById("school-profile-name").textContent = name;
+  const info = schools.find(s => s.SchoolName === name);
+  const fileWrap = document.getElementById("school-plan-file-info");
+  fileWrap.innerHTML = info && info.PlanFileUrl
+    ? `<p class="hint-text">📄 <a href="${info.PlanFileUrl}" target="_blank" rel="noopener">${info.PlanFileName || "Yearly plan"}</a> — updated ${info.PlanUpdatedAt ? new Date(info.PlanUpdatedAt).toLocaleDateString() : ""}</p>`
+    : '<p class="hint-text">No yearly plan PDF uploaded yet.</p>';
+
+  const entries = planProgress.filter(p => p.School === name).sort((a, b) => a.Date < b.Date ? 1 : -1);
+  destroyChart("schoolProgress");
+  const trendData = entries.slice().reverse();
+  charts.schoolProgress = new Chart(document.getElementById("chart-school-progress"), {
+    type: "line",
+    data: { labels: trendData.map(p => p.Date), datasets: [{ label: "% complete", data: trendData.map(p => p.PercentComplete), borderColor: "#603D98", backgroundColor: "#603D98", tension: 0.25 }] },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+  });
+
+  renderProgressList("school-progress-wrap", name, true);
+}
+
+async function handleUploadSchoolPlan() {
+  const errEl = document.getElementById("upload-plan-error");
+  const successEl = document.getElementById("upload-plan-success");
+  const btn = document.getElementById("upload-plan-btn");
+  errEl.classList.add("hidden"); successEl.classList.add("hidden");
+  const fileInput = document.getElementById("school-plan-file-input");
+  const file = fileInput.files[0];
+  if (!file) { errEl.textContent = "Choose a PDF first."; errEl.classList.remove("hidden"); return; }
+  if (file.type !== "application/pdf") { errEl.textContent = "Please choose a PDF file."; errEl.classList.remove("hidden"); return; }
+  if (file.size > 15 * 1024 * 1024) { errEl.textContent = "That file is over ~15MB, which may fail to upload — try compressing it first."; errEl.classList.remove("hidden"); return; }
+
+  btn.disabled = true; btn.textContent = "Uploading…";
+  try {
+    const base64Data = await readFileAsBase64(file);
+    const result = await apiPost({ action: "uploadSchoolPlan", schoolName: profileSchoolName, fileName: file.name, base64Data });
+    if (result.status === "ok") {
+      await loadAllData();
+      renderSchoolProfile();
+      fileInput.value = "";
+      successEl.classList.remove("hidden");
+      setTimeout(() => successEl.classList.add("hidden"), 2500);
+    } else {
+      errEl.textContent = result.message || "Upload failed."; errEl.classList.remove("hidden");
+    }
+  } catch (err) {
+    errEl.textContent = "Upload failed. Check your connection and try a smaller file.";
+    errEl.classList.remove("hidden");
+  }
+  btn.disabled = false; btn.textContent = "Upload";
+}
+
+window.addEventListener("hashchange", () => {
+  if (document.getElementById("screen-admin").classList.contains("hidden")) return;
+  const hash = location.hash;
+  if (hash.indexOf("#profile/") === 0) {
+    profileTrainerName = decodeURIComponent(hash.slice(9));
+    setAdminView("profile");
+  } else if (hash.indexOf("#school/") === 0) {
+    profileSchoolName = decodeURIComponent(hash.slice(8));
+    setAdminView("school-profile");
+  } else if (hash === "") {
+    setAdminView("overview");
+  }
+});
+
+// ================================================================
+// ADMIN — OVERVIEW
 // ================================================================
 function populateTrainerFilter() {
-  const names = [...new Set(allLogs.map(l => l.trainer))].sort();
+  const names = [...new Set(dailyLogs.map(l => l.Trainer).concat(sessions.map(s => s.Trainer)))].sort();
   const sel = document.getElementById("filter-trainer");
   const current = sel.value;
   sel.innerHTML = '<option value="all">All trainers</option>' + names.map(n => `<option value="${n}">${n}</option>`).join("");
   sel.value = names.includes(current) ? current : "all";
 }
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
-function isoWeek(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
-  const target = new Date(d.valueOf());
-  const dayNr = (d.getDay() + 6) % 7;
-  target.setDate(target.getDate() - dayNr + 3);
-  const firstThursday = target.valueOf();
-  target.setMonth(0, 1);
-  if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
-  const week = 1 + Math.round((firstThursday - target.valueOf()) / (7 * 86400000));
-  return d.getFullYear() + "-W" + String(week).padStart(2, "0");
-}
-function bucketKey(dateStr, period) {
-  if (period === "weekly") return isoWeek(dateStr);
-  if (period === "monthly") return dateStr.slice(0, 7);
-  if (period === "yearly") return dateStr.slice(0, 4);
-  return dateStr;
-}
-
-function getFilteredLogs() {
+function getFilteredAggregates() {
   const trainerFilter = document.getElementById("filter-trainer").value;
   const from = document.getElementById("filter-from").value;
   const to = document.getElementById("filter-to").value;
-  return allLogs.filter(l =>
-    (trainerFilter === "all" || l.trainer === trainerFilter) &&
-    (!from || l.date >= from) && (!to || l.date <= to)
+  return buildDailyAggregates().filter(d =>
+    (trainerFilter === "all" || d.trainer === trainerFilter) &&
+    (!from || d.date >= from) && (!to || d.date <= to)
+  );
+}
+function getFilteredSessions() {
+  const trainerFilter = document.getElementById("filter-trainer").value;
+  const from = document.getElementById("filter-from").value;
+  const to = document.getElementById("filter-to").value;
+  return sessions.filter(s =>
+    (trainerFilter === "all" || s.Trainer === trainerFilter) &&
+    (!from || s.Date >= from) && (!to || s.Date <= to)
   );
 }
 
-function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
-
-function renderAdmin() {
+function renderOverview() {
   const period = document.getElementById("filter-period").value;
-  const filtered = getFilteredLogs();
+  const agg = getFilteredAggregates();
+  const sess = getFilteredSessions();
 
-  // Stats
-  const trainerNames = [...new Set(allLogs.map(l => l.trainer))];
+  const trainerNames = [...new Set(dailyLogs.map(l => l.Trainer).concat(sessions.map(s => s.Trainer)))];
   let under = 0, proper = 0, over = 0;
-  filtered.forEach(l => {
-    const band = utilizationBand(productiveHours(l));
-    if (band === "under") under++; else if (band === "over") over++; else proper++;
-  });
+  agg.forEach(d => { if (d.band === "under") under++; else if (d.band === "over") over++; else proper++; });
   document.getElementById("stat-trainers").textContent = trainerNames.length;
   document.getElementById("stat-under").textContent = under;
   document.getElementById("stat-proper").textContent = proper;
   document.getElementById("stat-over").textContent = over;
 
-  // By-trainer aggregation
+  // Hours by trainer, stacked by session type + school
   const byTrainer = {};
-  filtered.forEach(l => {
-    byTrainer[l.trainer] = byTrainer[l.trainer] || { school: 0, online: 0, shadow: 0, other: 0, days: 0 };
-    const t = byTrainer[l.trainer];
-    t.school += l.sessionSchoolHours; t.online += l.sessionOnlineHours;
-    t.shadow += l.shadowingHours; t.other += l.otherAssignmentHours; t.days += 1;
+  agg.forEach(d => { byTrainer[d.trainer] = byTrainer[d.trainer] || { School: 0 }; byTrainer[d.trainer].School += d.schoolHours; });
+  sess.forEach(s => {
+    byTrainer[s.Trainer] = byTrainer[s.Trainer] || { School: 0 };
+    byTrainer[s.Trainer][s.SessionType] = (byTrainer[s.Trainer][s.SessionType] || 0) + (Number(s.Hours) || 0);
   });
   const trainerLabels = Object.keys(byTrainer);
-
+  const typeKeys = ["School"].concat(SESSION_TYPES);
   destroyChart("hours");
   charts.hours = new Chart(document.getElementById("chart-hours"), {
     type: "bar",
-    data: {
-      labels: trainerLabels,
-      datasets: [
-        { label: "School sessions", data: trainerLabels.map(t => byTrainer[t].school), backgroundColor: "#2F4B3C" },
-        { label: "Online sessions", data: trainerLabels.map(t => byTrainer[t].online), backgroundColor: "#B9862E" },
-        { label: "Shadowing", data: trainerLabels.map(t => byTrainer[t].shadow), backgroundColor: "#8E9E93" },
-        { label: "Other assignments", data: trainerLabels.map(t => byTrainer[t].other), backgroundColor: "#B5574A" }
-      ]
-    },
+    data: { labels: trainerLabels, datasets: typeKeys.map(t => ({
+      label: t, data: trainerLabels.map(tr => byTrainer[tr][t] || 0), backgroundColor: TYPE_COLORS[t] || "#999"
+    })) },
     options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
   });
 
   destroyChart("util");
-  const utilData = trainerLabels.map(t => {
-    const total = byTrainer[t].school + byTrainer[t].online + byTrainer[t].shadow + byTrainer[t].other;
-    const avgPerDay = byTrainer[t].days > 0 ? total / byTrainer[t].days : 0;
-    return Math.round((avgPerDay / UTIL.WORKDAY_HOURS) * 100);
-  });
+  const byTrainerAgg = {};
+  agg.forEach(d => { byTrainerAgg[d.trainer] = byTrainerAgg[d.trainer] || { total: 0, days: 0 }; byTrainerAgg[d.trainer].total += d.total; byTrainerAgg[d.trainer].days += 1; });
+  const utilLabels = Object.keys(byTrainerAgg);
+  const utilData = utilLabels.map(t => { const a = byTrainerAgg[t]; const avg = a.days > 0 ? a.total / a.days : 0; return Math.round((avg / UTIL.WORKDAY_HOURS) * 100); });
   charts.util = new Chart(document.getElementById("chart-util"), {
     type: "bar",
-    data: { labels: trainerLabels, datasets: [{ label: "Utilization %", data: utilData,
-      backgroundColor: utilData.map(pct => {
-        const hrs = (pct / 100) * UTIL.WORKDAY_HOURS;
-        const band = utilizationBand(hrs);
-        return band === "under" ? "#B5574A" : band === "over" ? "#B9862E" : "#2F4B3C";
-      }) }] },
+    data: { labels: utilLabels, datasets: [{ label: "Utilization %", data: utilData, backgroundColor: utilData.map(pct => {
+      const hrs = (pct / 100) * UTIL.WORKDAY_HOURS; const band = utilizationBand(hrs);
+      return band === "under" ? "#B5574A" : band === "over" ? "#B9862E" : "#603D98";
+    }) }] },
     options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100 } } }
   });
 
-  // Trend
   const trendMap = {};
-  filtered.forEach(l => {
-    const k = bucketKey(l.date, period);
-    trendMap[k] = trendMap[k] || 0;
-    trendMap[k] += productiveHours(l);
-  });
+  agg.forEach(d => { const k = bucketKey(d.date, period); trendMap[k] = (trendMap[k] || 0) + d.total; });
   const trendKeys = Object.keys(trendMap).sort();
   destroyChart("trend");
   charts.trend = new Chart(document.getElementById("chart-trend"), {
     type: "line",
-    data: { labels: trendKeys, datasets: [{ label: "Total productive hours", data: trendKeys.map(k => trendMap[k]),
-      borderColor: "#2F4B3C", backgroundColor: "#2F4B3C", tension: 0.25 }] },
+    data: { labels: trendKeys, datasets: [{ label: "Total productive hours", data: trendKeys.map(k => trendMap[k]), borderColor: "#603D98", backgroundColor: "#603D98", tension: 0.25 }] },
     options: { responsive: true, maintainAspectRatio: false }
   });
 
-  // Table
-  document.getElementById("table-title").textContent = `All entries (${filtered.length})`;
+  document.getElementById("table-title").textContent = `All daily entries (${agg.length})`;
   const wrap = document.getElementById("admin-table-wrap");
-  if (filtered.length === 0) {
-    wrap.innerHTML = '<p class="empty-note">No entries match these filters.</p>';
-    return;
-  }
-  const sorted = filtered.slice().sort((a, b) => a.date < b.date ? 1 : -1);
-  const rows = sorted.map(l => {
-    const hrs = productiveHours(l);
-    const band = utilizationBand(hrs);
-    return `<tr>
-      <td>${l.trainer}</td><td>${l.date}</td>
-      <td class="num">${hrs.toFixed(2)}h</td>
-      <td><span class="badge ${band}">${bandLabel(band)}</span></td>
-      <td class="num">${l.schoolHours}h</td><td class="num">${l.breakMinutes}m</td>
-      <td class="num">${l.sessionSchoolHours}h</td><td class="num">${l.sessionOnlineHours}h</td>
-      <td class="num">${l.shadowingHours}h</td><td class="num">${l.otherAssignmentHours}h</td>
-      <td>${l.otherAssignmentRemarks || ""}</td>
-    </tr>`;
-  }).join("");
-  wrap.innerHTML = `<table><thead><tr>
-    <th>Trainer</th><th>Date</th><th class="num">Productive</th><th>Status</th>
-    <th class="num">School</th><th class="num">Break</th><th class="num">Session-School</th>
-    <th class="num">Session-Online</th><th class="num">Shadowing</th><th class="num">Other</th><th>Remarks</th>
-  </tr></thead><tbody>${rows}</tbody></table>`;
+  if (agg.length === 0) { wrap.innerHTML = '<p class="empty-note">No entries match these filters.</p>'; return; }
+  const sorted = agg.slice().sort((a, b) => a.date < b.date ? 1 : -1);
+  wrap.innerHTML = `<table><thead><tr><th>Trainer</th><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
+    ${sorted.map(d => `<tr><td><a href="#profile/${encodeURIComponent(d.trainer)}" onclick="openProfile('${d.trainer}'); return false;">${d.trainer}</a></td><td>${d.date}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+  </tbody></table>`;
 }
 
 function exportCSV() {
-  const filtered = getFilteredLogs();
-  const header = "Trainer,Date,ProductiveHours,Status,SchoolHours,BreakMinutes,SessionSchoolHours,SessionOnlineHours,ShadowingHours,OtherAssignmentHours,Remarks\n";
-  const rows = filtered.map(l => {
-    const hrs = productiveHours(l);
-    const band = bandLabel(utilizationBand(hrs));
-    return [l.trainer, l.date, hrs.toFixed(2), band, l.schoolHours, l.breakMinutes,
-      l.sessionSchoolHours, l.sessionOnlineHours, l.shadowingHours, l.otherAssignmentHours,
-      '"' + (l.otherAssignmentRemarks || "").replace(/"/g, '""') + '"'].join(",");
-  }).join("\n");
+  const agg = getFilteredAggregates();
+  const header = "Trainer,Date,SchoolHours,SessionHours,TotalHours,Status\n";
+  const rows = agg.map(d => [d.trainer, d.date, d.schoolHours, d.sessionHours.toFixed(2), d.total.toFixed(2), bandLabel(d.band)].join(",")).join("\n");
   const blob = new Blob([header + rows], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "daybook-logs.csv"; a.click();
+  const a = document.createElement("a"); a.href = url; a.download = "uwr-trainer-desk.csv"; a.click();
   URL.revokeObjectURL(url);
+}
+
+// ================================================================
+// ADMIN — TRAINERS DIRECTORY + PROFILE
+// ================================================================
+function renderDirectory() {
+  const q = (document.getElementById("trainer-search").value || "").toLowerCase();
+  const names = [...new Set(dailyLogs.map(l => l.Trainer).concat(sessions.map(s => s.Trainer)))].sort();
+  const filtered = names.filter(n => n.toLowerCase().includes(q));
+  const wrap = document.getElementById("trainer-directory-list");
+  if (filtered.length === 0) { wrap.innerHTML = '<p class="empty-note">No trainers match your search.</p>'; return; }
+  wrap.innerHTML = filtered.map(n => {
+    const agg = buildDailyAggregates().filter(d => d.trainer === n);
+    const days = agg.length;
+    const info = getTrainerProfile(n);
+    return `<div class="trainer-card" onclick="openProfile('${n}')">
+      <span style="display:flex; align-items:center; gap:12px;">
+        ${renderAvatar(n, info.PhotoUrl, 36)}
+        <span>
+          <div class="name">${n}</div>
+          <div class="meta">${info.AssignedSchool || "No school assigned"}</div>
+        </span>
+      </span>
+      <span class="meta">${days} day${days === 1 ? "" : "s"} logged</span>
+    </div>`;
+  }).join("");
+}
+
+function renderProfile() {
+  const name = profileTrainerName;
+  document.getElementById("profile-name").textContent = name;
+  const info = getTrainerProfile(name);
+  document.getElementById("profile-avatar-wrap").innerHTML = renderAvatar(name, info.PhotoUrl, 48);
+  document.getElementById("profile-assignedSchool").value = info.AssignedSchool || "";
+  document.getElementById("profile-photoUrl").value = info.PhotoUrl || "";
+  const agg = buildDailyAggregates().filter(d => d.trainer === name).sort((a, b) => a.date < b.date ? 1 : -1);
+  const mySessions = sessions.filter(s => s.Trainer === name).sort((a, b) => a.Date < b.Date ? 1 : -1);
+
+  let under = 0, proper = 0, over = 0, totalHours = 0;
+  agg.forEach(d => { totalHours += d.total; if (d.band === "under") under++; else if (d.band === "over") over++; else proper++; });
+  document.getElementById("profile-stat-grid").innerHTML = `
+    <div class="card stat-card"><div class="stat-label">Days logged</div><div class="stat-value">${agg.length}</div></div>
+    <div class="card stat-card"><div class="stat-label">Total productive hours</div><div class="stat-value">${totalHours.toFixed(1)}</div></div>
+    <div class="card stat-card"><div class="stat-label">Properly utilized days</div><div class="stat-value">${proper}</div></div>
+    <div class="card stat-card"><div class="stat-label">Under / Over</div><div class="stat-value">${under} / ${over}</div></div>`;
+
+  const typeTotals = { School: 0 };
+  agg.forEach(d => { typeTotals.School += d.schoolHours; });
+  mySessions.forEach(s => { typeTotals[s.SessionType] = (typeTotals[s.SessionType] || 0) + (Number(s.Hours) || 0); });
+  const typeKeys = Object.keys(typeTotals).filter(k => typeTotals[k] > 0);
+  destroyChart("profileType");
+  charts.profileType = new Chart(document.getElementById("chart-profile-type"), {
+    type: "bar",
+    data: { labels: typeKeys, datasets: [{ label: "Hours", data: typeKeys.map(k => typeTotals[k]), backgroundColor: typeKeys.map(k => TYPE_COLORS[k] || "#999") }] },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const trendMap = {};
+  agg.forEach(d => { trendMap[d.date] = d.total; });
+  const trendKeys = Object.keys(trendMap).sort();
+  destroyChart("profileTrend");
+  charts.profileTrend = new Chart(document.getElementById("chart-profile-trend"), {
+    type: "line",
+    data: { labels: trendKeys, datasets: [{ label: "Total hours/day", data: trendKeys.map(k => trendMap[k]), borderColor: "#603D98", backgroundColor: "#603D98", tension: 0.25 }] },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const summaryWrap = document.getElementById("profile-summary-wrap");
+  summaryWrap.innerHTML = agg.length === 0 ? '<p class="empty-note">No entries yet.</p>' :
+    `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
+    ${agg.map(d => `<tr><td>${d.date}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+    </tbody></table>`;
+
+  const sessWrap = document.getElementById("profile-sessions-wrap");
+  sessWrap.innerHTML = mySessions.length === 0 ? '<p class="empty-note">No session entries yet.</p>' :
+    `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th></th></tr></thead><tbody>
+    ${mySessions.map(s => `<tr><td>${s.Date}</td><td>${s.Mode}</td><td>${s.SessionType}</td><td>${s.CourseTopic || ""}</td><td class="num">${s.Hours}h</td><td>${s.Remarks || ""}</td><td><button class="btn-danger" onclick="deleteSessionEntry('${s.Id}')">Delete</button></td></tr>`).join("")}
+    </tbody></table>`;
 }
 
 // ================================================================
 // INIT
 // ================================================================
 checkConfig();
-document.getElementById("log-date") && (document.getElementById("log-date").max = new Date().toISOString().slice(0, 10));
 if (checkConfig()) loadTrainerNames();
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js").catch(() => {});
+}
 </script>
 </body>
 </html>
