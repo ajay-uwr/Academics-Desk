@@ -2,8 +2,10 @@
   "name": "UWR Academics Desk",
   "short_name": "Logbook",
   "description": "Trainer logging and school progress tracking for Unique World Robotics.",
+  "id": "/Academics-Desk/",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#F6F1E7",
   "theme_color": "#603D98",
   "icons": [
