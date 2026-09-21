@@ -188,7 +188,7 @@
             <form onsubmit="return handleVerifyOtp(event)">
               <label class="field">
                 <span class="field-label">Verification code</span>
-                <input type="text" id="signup-otp" inputmode="numeric" maxlength="6" placeholder="123456" required />
+                <input type="text" id="signup-otp" inputmode="numeric" maxlength="6" placeholder="123456" required oninput="this.value = this.value.replace(/\D/g, '').slice(0, 6)" />
               </label>
               <div id="signup-verify-error" class="error-text hidden"></div>
               <button class="btn-primary" type="submit" id="signup-verify-btn">Verify &amp; sign up</button>
