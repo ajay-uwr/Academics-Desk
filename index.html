@@ -144,14 +144,12 @@
         <div id="subtab-login">
           <form onsubmit="return handleTrainerLogin(event)">
             <label class="field">
-              <span class="field-label">Your name</span>
-              <select id="login-name-select">
-                <option value="">Loading…</option>
-              </select>
+              <span class="field-label">Company email</span>
+              <input type="email" id="login-email" placeholder="name@uwrindia.com" autocomplete="username" required />
             </label>
             <label class="field">
               <span class="field-label">Passcode</span>
-              <input type="password" id="login-passcode" required />
+              <input type="password" id="login-passcode" autocomplete="current-password" required />
             </label>
             <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; margin-bottom:14px; color:var(--ink-soft);">
               <input type="checkbox" id="remember-me" style="width:auto;" /> Keep me logged in on this device
@@ -163,38 +161,29 @@
 
         <!-- SIGN UP -->
         <div id="subtab-signup" class="hidden">
-          <div id="signup-step-details">
-            <form onsubmit="return handleRequestOtp(event)">
-              <label class="field">
-                <span class="field-label">Your name (used as your username)</span>
-                <input type="text" id="signup-name" placeholder="Your full name" required />
-              </label>
-              <label class="field">
-                <span class="field-label">Choose a passcode</span>
-                <input type="password" id="signup-passcode" required />
-              </label>
-              <label class="field">
-                <span class="field-label">Organizational email</span>
-                <input type="email" id="signup-email" placeholder="you@yourcompany.com" required />
-              </label>
-              <p class="hint-text" style="margin-bottom:12px;">Only your organization's email domain is accepted. We'll send a 6-digit code to verify it's really you.</p>
-              <div id="signup-request-error" class="error-text hidden"></div>
-              <button class="btn-primary" type="submit" id="signup-request-btn">Send verification code</button>
-            </form>
-          </div>
-
-          <div id="signup-step-otp" class="hidden">
-            <p class="hint-text" style="margin-bottom:12px;">We sent a 6-digit code to <strong id="signup-email-display"></strong>. Enter it below.</p>
-            <form onsubmit="return handleVerifyOtp(event)">
-              <label class="field">
-                <span class="field-label">Verification code</span>
-                <input type="text" id="signup-otp" inputmode="numeric" maxlength="6" placeholder="123456" required oninput="this.value = this.value.replace(/\D/g, '').slice(0, 6)" />
-              </label>
-              <div id="signup-verify-error" class="error-text hidden"></div>
-              <button class="btn-primary" type="submit" id="signup-verify-btn">Verify &amp; sign up</button>
-              <button class="link-btn" type="button" onclick="backToSignupDetails()" style="margin-top:8px;">← Use a different email</button>
-            </form>
-          </div>
+          <form onsubmit="return handleSignup(event)">
+            <label class="field">
+              <span class="field-label">Full name</span>
+              <input type="text" id="signup-name" placeholder="Your full name" autocomplete="name" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Company email</span>
+              <input type="email" id="signup-email" placeholder="name@uwrindia.com" autocomplete="username" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Choose a passcode</span>
+              <input type="password" id="signup-passcode" autocomplete="new-password" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Confirm passcode</span>
+              <input type="password" id="signup-passcode2" autocomplete="new-password" required />
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; margin-bottom:14px; color:var(--ink-soft);">
+              <input type="checkbox" id="signup-remember" style="width:auto;" /> Keep me logged in on this device
+            </label>
+            <div id="signup-error" class="error-text hidden"></div>
+            <button class="btn-primary" type="submit" id="signup-btn">Create account</button>
+          </form>
         </div>
       </div>
 
@@ -219,6 +208,7 @@
     <div class="brand-mini"><strong>UWR Logbook</strong></div>
     <div style="display:flex; align-items:center; gap:16px;">
       <span id="trainer-name-display" class="hint-text"></span>
+      <button class="link-btn" onclick="refreshData()">↻ Refresh</button>
       <button class="link-btn" onclick="logout()">Log out</button>
     </div>
   </header>
@@ -331,13 +321,17 @@
 <div id="screen-admin" class="hidden">
   <header class="app-header">
     <div class="brand-mini"><strong>UWR Academics Desk — Admin</strong></div>
-    <button class="link-btn" onclick="logout()">Log out</button>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <button class="link-btn" onclick="refreshData()">↻ Refresh</button>
+      <button class="link-btn" onclick="logout()">Log out</button>
+    </div>
   </header>
   <main class="app-main">
     <div class="admin-subnav">
       <button id="subnav-overview" onclick="setAdminView('overview')" class="active">Overview</button>
       <button id="subnav-trainers" onclick="setAdminView('directory')">Trainers</button>
       <button id="subnav-schools" onclick="setAdminView('school-directory')">Schools</button>
+      <button id="subnav-addlog" onclick="setAdminView('add-log')">Add logs</button>
     </div>
 
     <!-- OVERVIEW -->
@@ -391,14 +385,23 @@
     <div class="profile-header">
       <div style="display:flex; align-items:center; gap:14px;">
         <div id="profile-avatar-wrap"></div>
-        <h2 id="profile-name"></h2>
+        <div>
+          <h2 id="profile-name"></h2>
+          <div id="profile-email" class="hint-text"></div>
+        </div>
       </div>
+      <button class="btn-outline" type="button" onclick="openAdminAddLog(profileTrainerName)">Add / edit logs</button>
     </div>
     <div class="card" style="padding:20px; margin-bottom:20px;">
       <label class="field" style="max-width:360px;"><span class="field-label">Photo URL</span><input type="text" id="profile-photoUrl" /></label>
-      <div style="display:flex; align-items:center; gap:12px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
         <button class="btn-primary" type="button" onclick="handleSaveProfileInfo()">Save</button>
         <span id="save-profile-info-success" class="success-text hidden">✓ Saved</span>
+      </div>
+      <label class="field" style="max-width:360px;"><span class="field-label">Reset passcode (then share the new one with the trainer)</span><input type="text" id="profile-newPasscode" placeholder="New passcode" autocomplete="off" /></label>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn-outline" type="button" onclick="handleResetPasscode()">Reset passcode</button>
+        <span id="reset-passcode-msg" class="hint-text"></span>
       </div>
     </div>
 
@@ -427,6 +430,63 @@
       <div class="card" id="profile-summary-wrap" style="margin-bottom:20px;"></div>
       <h3 class="section-title">Session entries</h3>
       <div class="card" id="profile-sessions-wrap"></div>
+    </div>
+
+    <!-- ADD LOGS (admin enters logs on a trainer's behalf, e.g. for missed days) -->
+    <div id="admin-view-add-log" class="hidden">
+      <div class="card" style="padding:24px; margin-bottom:20px;">
+        <h2 style="font-size:1.1rem; margin-bottom:6px;">Add logs for a trainer</h2>
+        <p class="hint-text" style="margin-bottom:16px;">Pick a trainer and a date — use this to fill in days that were missed. Saving a date that already has a log updates it.</p>
+        <div class="grid-2">
+          <label class="field"><span class="field-label">Trainer</span><select id="adm-trainer" onchange="onAdminLogContextChange()"></select></label>
+          <label class="field"><span class="field-label">Date</span><input type="date" id="adm-date" onchange="onAdminLogContextChange()" /></label>
+        </div>
+      </div>
+
+      <div class="card" style="padding:24px; margin-bottom:20px;">
+        <h2 style="font-size:1.1rem; margin-bottom:16px;">School day</h2>
+        <form onsubmit="return handleAdminSaveDailyLog(event)">
+          <div class="grid-3">
+            <label class="field"><span class="field-label">Login time</span><input type="time" id="adm-loginTime" /></label>
+            <label class="field"><span class="field-label">Logout time</span><input type="time" id="adm-logoutTime" /></label>
+            <label class="field"><span class="field-label">Break (minutes)</span><input type="number" min="0" step="5" id="adm-breakMinutes" placeholder="0" /></label>
+            <label class="field"><span class="field-label">Free hours</span><input type="number" min="0" step="0.25" id="adm-freeHours" placeholder="0" /></label>
+            <label class="field"><span class="field-label">Session hours at school</span><input type="number" min="0" step="0.25" id="adm-schoolSessionHours" placeholder="0" /></label>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; margin-top:6px;">
+            <button class="btn-primary" type="submit" id="adm-save-daily-btn">Save school day</button>
+            <span id="adm-save-daily-success" class="success-text hidden">✓ Saved</span>
+            <span id="adm-save-daily-error" class="error-text hidden"></span>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="padding:24px; margin-bottom:20px;">
+        <h2 style="font-size:1.1rem; margin-bottom:16px;">Add a session</h2>
+        <form onsubmit="return handleAdminAddSession(event)">
+          <div class="session-row-add">
+            <label class="field" style="margin:0;"><span class="field-label">Mode</span>
+              <select id="adm-s-mode"><option>Online</option><option>Offline</option></select>
+            </label>
+            <label class="field" style="margin:0;"><span class="field-label">Session type</span>
+              <select id="adm-s-type"></select>
+            </label>
+            <label class="field" style="margin:0;"><span class="field-label">Course / topic</span>
+              <input type="text" id="adm-s-course" placeholder="e.g. Horizon STCB" />
+            </label>
+            <label class="field" style="margin:0;"><span class="field-label">Hours</span>
+              <input type="number" min="0" step="0.25" id="adm-s-hours" placeholder="0" />
+            </label>
+            <label class="field" style="margin:0;"><span class="field-label">Remarks</span>
+              <input type="text" id="adm-s-remarks" placeholder="optional" />
+            </label>
+            <button class="btn-primary" type="submit">Add</button>
+          </div>
+        </form>
+        <div id="adm-session-error" class="error-text hidden"></div>
+        <h3 class="section-title" style="margin-top:16px;">Sessions on this date</h3>
+        <div id="adm-sessions-wrap"></div>
+      </div>
     </div>
 
     <!-- SCHOOLS DIRECTORY -->
@@ -480,6 +540,7 @@
 // STATE
 // ================================================================
 let currentTrainer = null;
+let currentTrainerEmail = null;
 let currentTrainerPasscode = null;
 let currentAdminPasscode = null;
 let dailyLogs = [];
@@ -488,7 +549,6 @@ let trainerProfiles = [];
 let schools = [];
 let planProgress = [];
 let assignments = [];
-let knownTrainerNames = [];
 let charts = {};
 let adminView = "overview";
 let profileTrainerName = null;
@@ -505,10 +565,34 @@ function avatarColor(name) {
 }
 function renderAvatar(name, photoUrl, size) {
   size = size || 40;
-  if (photoUrl) {
-    return `<img src="${photoUrl}" onerror="this.replaceWith(Object.assign(document.createElement('div'), {innerHTML: renderAvatar('${name.replace(/'/g, "")}', '', ${size})}).firstChild)" style="width:${size}px; height:${size}px; border-radius:50%; object-fit:cover;" />`;
+  if (photoUrl && /^https?:\/\//i.test(String(photoUrl))) {
+    return `<img src="${esc(photoUrl)}" alt="" onerror="this.outerHTML = renderAvatar(${js_(name)}, '', ${size})" style="width:${size}px; height:${size}px; border-radius:50%; object-fit:cover;" />`;
   }
-  return `<div style="width:${size}px; height:${size}px; border-radius:50%; background:${avatarColor(name)}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:${size * 0.4}px; font-family:inherit;">${initialsOf(name)}</div>`;
+  return `<div style="width:${size}px; height:${size}px; border-radius:50%; background:${avatarColor(name)}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:${size * 0.4}px; font-family:inherit;">${esc(initialsOf(name))}</div>`;
+}
+// Escapes text before it goes into the page, so nothing a user types
+// (a remark, a name...) can ever run as code.
+function esc(v) {
+  return String(v === undefined || v === null ? "" : v)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+// Safely passes a text value into an inline onclick="..." handler.
+function js_(v) {
+  return "decodeURIComponent('" + encodeURIComponent(String(v)).replace(/'/g, "%27") + "')";
+}
+// Today's date in the user's own timezone (not UTC), as yyyy-mm-dd.
+function todayLocal() {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+// Only ever link to normal web addresses.
+function safeUrl(u) { return /^https?:\/\//i.test(String(u || "")) ? String(u) : "#"; }
+function planFileHtml(info) {
+  return `<p class="hint-text">📄 <a href="${esc(safeUrl(info.PlanFileUrl))}" target="_blank" rel="noopener">${esc(info.PlanFileName || "Yearly plan")}</a> — updated ${info.PlanUpdatedAt ? esc(new Date(info.PlanUpdatedAt).toLocaleDateString()) : ""}</p>`;
+}
+function sameName(a, b) {
+  return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
 }
 function getTrainerProfile(name) {
   return trainerProfiles.find(t => t.Name === name) || { Name: name, AssignedSchool: "", PhotoUrl: "" };
@@ -517,17 +601,44 @@ function getTrainerProfile(name) {
 // ================================================================
 // API HELPERS
 // ================================================================
-async function apiGet(action, params) {
-  const url = new URL(CONFIG.WEB_APP_URL);
-  url.searchParams.set("action", action);
-  if (params) Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
-  const res = await fetch(url);
-  return res.json();
+// Every request is sent with the current login attached, so the server can
+// check who is asking (and what they're allowed to do).
+function currentAuth() {
+  if (currentAdminPasscode !== null) return { role: "admin", passcode: currentAdminPasscode };
+  if (currentTrainerEmail && currentTrainerPasscode !== null) {
+    return { role: "trainer", email: currentTrainerEmail, passcode: currentTrainerPasscode };
+  }
+  return null;
 }
+
+// Throws an error flagged .network = true if the server couldn't be reached
+// at all, so screens can tell that apart from a normal "no, because..." answer.
 async function apiPost(payload) {
-  const res = await fetch(CONFIG.WEB_APP_URL, { method: "POST", body: JSON.stringify(payload) });
-  return res.json();
+  const auth = currentAuth();
+  const body = auth ? Object.assign({}, payload, { auth: auth }) : payload;
+  try {
+    const res = await fetch(CONFIG.WEB_APP_URL, { method: "POST", body: JSON.stringify(body) });
+    return await res.json();
+  } catch (e) {
+    const err = new Error("network");
+    err.network = true;
+    throw err;
+  }
 }
+
+// For saves/deletes: throws if the server says no, so screens never show a
+// false "Saved" when the server actually refused.
+async function apiWrite(payload) {
+  const result = await apiPost(payload);
+  if (result.status !== "ok") throw new Error(result.message || "The server could not complete that.");
+  return result;
+}
+
+function friendlyError(err) {
+  if (err && err.network) return "Could not reach the server. Check your internet connection and try again.";
+  return (err && err.message) || "Something went wrong. Please try again.";
+}
+
 function checkConfig() {
   if (!CONFIG.WEB_APP_URL || CONFIG.WEB_APP_URL.indexOf("PASTE_YOUR") === 0) {
     document.getElementById("config-banner").classList.remove("hidden");
@@ -605,27 +716,15 @@ function switchTrainerSubTab(tab) {
   document.getElementById("subtab-login").classList.toggle("hidden", tab !== "login");
   document.getElementById("subtab-signup").classList.toggle("hidden", tab !== "signup");
 }
-function backToSignupDetails() {
-  document.getElementById("signup-step-otp").classList.add("hidden");
-  document.getElementById("signup-step-details").classList.remove("hidden");
-}
 
-async function loadTrainerNames() {
-  const sel = document.getElementById("login-name-select");
-  try {
-    const result = await apiGet("getTrainerNames");
-    knownTrainerNames = (result.names || []).slice().sort();
-  } catch (err) { knownTrainerNames = []; }
-  sel.innerHTML = '<option value="">Select your name…</option>' + knownTrainerNames.map(n => `<option value="${n}">${n}</option>`).join("");
-}
-
-function rememberTrainer(name, passcode) {
-  try { localStorage.setItem("uwr_remember_trainer", JSON.stringify({ name, passcode })); } catch (e) {}
+function rememberTrainer(email, passcode) {
+  try { localStorage.setItem("uwr_remember_trainer", JSON.stringify({ email, passcode })); } catch (e) {}
 }
 function forgetTrainer() { try { localStorage.removeItem("uwr_remember_trainer"); } catch (e) {} }
 
-async function completeLogin(name, passcode) {
+async function completeLogin(name, email, passcode) {
   currentTrainer = name;
+  currentTrainerEmail = email;
   currentTrainerPasscode = passcode;
   await loadAllData();
   showScreen("trainer");
@@ -638,82 +737,62 @@ async function handleTrainerLogin(e) {
   const btn = document.getElementById("trainer-login-btn");
   errEl.classList.add("hidden");
 
-  const name = document.getElementById("login-name-select").value;
-  if (!name) { errEl.textContent = "Select your name."; errEl.classList.remove("hidden"); return false; }
+  const email = document.getElementById("login-email").value.trim().toLowerCase();
   const passcode = document.getElementById("login-passcode").value.trim();
   const remember = document.getElementById("remember-me").checked;
 
   btn.disabled = true; btn.textContent = "Checking…";
   try {
-    const result = await apiPost({ action: "login", name, passcode });
+    const result = await apiPost({ action: "login", email, passcode });
     if (result.status === "ok") {
-      if (remember) rememberTrainer(result.name, passcode);
-      await completeLogin(result.name, passcode);
+      if (remember) rememberTrainer(result.email, passcode);
+      await completeLogin(result.name, result.email, passcode);
     } else {
       errEl.textContent = result.message || "Login failed.";
       errEl.classList.remove("hidden");
     }
   } catch (err) {
-    errEl.textContent = "Could not reach the server. Check the Apps Script URL and your connection.";
+    errEl.textContent = friendlyError(err);
     errEl.classList.remove("hidden");
   }
   btn.disabled = false; btn.textContent = "Log in";
   return false;
 }
 
-async function handleRequestOtp(e) {
+async function handleSignup(e) {
   e.preventDefault();
   if (!checkConfig()) return false;
-  const errEl = document.getElementById("signup-request-error");
-  const btn = document.getElementById("signup-request-btn");
+  const errEl = document.getElementById("signup-error");
+  const btn = document.getElementById("signup-btn");
   errEl.classList.add("hidden");
-  const name = document.getElementById("signup-name").value.trim();
-  const passcode = document.getElementById("signup-passcode").value.trim();
-  const email = document.getElementById("signup-email").value.trim();
-  if (!name || !passcode || !email) { errEl.textContent = "Fill in all fields."; errEl.classList.remove("hidden"); return false; }
 
-  btn.disabled = true; btn.textContent = "Sending…";
+  const name = document.getElementById("signup-name").value.trim();
+  const email = document.getElementById("signup-email").value.trim().toLowerCase();
+  const passcode = document.getElementById("signup-passcode").value.trim();
+  const passcode2 = document.getElementById("signup-passcode2").value.trim();
+  const remember = document.getElementById("signup-remember").checked;
+
+  if (passcode !== passcode2) {
+    errEl.textContent = "The two passcodes don't match.";
+    errEl.classList.remove("hidden");
+    return false;
+  }
+
+  btn.disabled = true; btn.textContent = "Creating account…";
   try {
-    const result = await apiPost({ action: "requestSignupOtp", name, passcode, email });
+    const result = await apiPost({ action: "signup", name, email, passcode });
     if (result.status === "ok") {
-      document.getElementById("signup-email-display").textContent = email;
-      document.getElementById("signup-step-details").classList.add("hidden");
-      document.getElementById("signup-step-otp").classList.remove("hidden");
+      if (remember) rememberTrainer(result.email, passcode);
+      await completeLogin(result.name, result.email, passcode);
     } else {
-      errEl.textContent = result.message || "Could not send code."; errEl.classList.remove("hidden");
+      errEl.textContent = result.message || "Could not create the account.";
+      errEl.classList.remove("hidden");
     }
   } catch (err) {
-    errEl.textContent = "Could not reach the server. Check the Apps Script URL and your connection.";
+    errEl.textContent = friendlyError(err);
     errEl.classList.remove("hidden");
   }
-  btn.disabled = false; btn.textContent = "Send verification code";
-  return false;
-}
-
-async function handleVerifyOtp(e) {
-  e.preventDefault();
-  const errEl = document.getElementById("signup-verify-error");
-  const btn = document.getElementById("signup-verify-btn");
-  errEl.classList.add("hidden");
-  const name = document.getElementById("signup-name").value.trim();
-  const passcode = document.getElementById("signup-passcode").value.trim();
-  const email = document.getElementById("signup-email").value.trim();
-  const otp = document.getElementById("signup-otp").value.trim();
-
-  btn.disabled = true; btn.textContent = "Verifying…";
-  try {
-    const result = await apiPost({ action: "verifySignupOtp", name, passcode, email, otp });
-    if (result.status === "ok") {
-      rememberTrainer(result.name, passcode);
-      await completeLogin(result.name, passcode);
-    } else {
-      errEl.textContent = result.message || "Verification failed."; errEl.classList.remove("hidden");
-    }
-  } catch (err) {
-    errEl.textContent = "Could not reach the server. Check the Apps Script URL and your connection.";
-    errEl.classList.remove("hidden");
-  }
-  btn.disabled = false; btn.textContent = "Verify & sign up";
+  btn.disabled = false; btn.textContent = "Create account";
   return false;
 }
 
@@ -734,7 +813,8 @@ async function handleAdminLogin(e) {
       errEl.classList.remove("hidden");
     }
   } catch (err) {
-    errEl.textContent = "Could not reach the server. Check the Apps Script URL and your connection.";
+    currentAdminPasscode = null;
+    errEl.textContent = friendlyError(err);
     errEl.classList.remove("hidden");
   }
   return false;
@@ -742,12 +822,12 @@ async function handleAdminLogin(e) {
 
 function logout() {
   currentTrainer = null;
+  currentTrainerEmail = null;
   currentTrainerPasscode = null;
   currentAdminPasscode = null;
   forgetTrainer();
   location.hash = "";
   showScreen("login");
-  loadTrainerNames();
 }
 
 function showScreen(name) {
@@ -756,13 +836,13 @@ function showScreen(name) {
     document.getElementById("trainer-name-display").textContent = currentTrainer;
     const typeSel = document.getElementById("s-type");
     if (!typeSel.options.length) typeSel.innerHTML = SESSION_TYPES.map(t => `<option>${t}</option>`).join("");
-    document.getElementById("working-date").value = new Date().toISOString().slice(0, 10);
-    document.getElementById("working-date").max = new Date().toISOString().slice(0, 10);
+    document.getElementById("working-date").value = todayLocal();
+    document.getElementById("working-date").max = todayLocal();
     onWorkingDateChange();
     renderTrainerHistory();
     renderMyProfileCard();
-    document.getElementById("pr-date").value = new Date().toISOString().slice(0, 10);
-    document.getElementById("pr-date").max = new Date().toISOString().slice(0, 10);
+    document.getElementById("pr-date").value = todayLocal();
+    document.getElementById("pr-date").max = todayLocal();
     populateSchoolSelect();
   }
   if (name === "admin") {
@@ -787,12 +867,31 @@ async function loadAllData() {
   let result;
   if (currentAdminPasscode !== null) {
     result = await apiPost({ action: "getAdminData", passcode: currentAdminPasscode });
-  } else if (currentTrainer && currentTrainerPasscode !== null) {
-    result = await apiPost({ action: "getTrainerData", name: currentTrainer, passcode: currentTrainerPasscode });
+  } else if (currentTrainerEmail && currentTrainerPasscode !== null) {
+    result = await apiPost({ action: "getTrainerData", email: currentTrainerEmail, passcode: currentTrainerPasscode });
   } else {
-    return; // not authenticated yet — nothing to load
+    return; // not logged in — nothing to load
   }
-  if (result.status !== "ok") throw new Error(result.message || "Could not load data.");
+  if (result.status !== "ok") throw new Error(result.message || "Could not load your data.");
+  applyData(result);
+}
+
+// Re-fetches everything (e.g. to see new sign-ups, or school assignments the
+// admin just made) and redraws whichever screen is open.
+async function refreshData() {
+  try { await loadAllData(); } catch (err) { alert(friendlyError(err)); return; }
+  if (!document.getElementById("screen-trainer").classList.contains("hidden")) {
+    renderMyProfileCard();
+    populateSchoolSelect();
+    onWorkingDateChange();
+    renderTrainerHistory();
+  } else if (!document.getElementById("screen-admin").classList.contains("hidden")) {
+    populateTrainerFilter();
+    setAdminView(adminView);
+  }
+}
+
+function applyData(result) {
   dailyLogs = result.dailyLogs || [];
   sessions = result.sessions || [];
   trainerProfiles = result.trainers || [];
@@ -802,12 +901,12 @@ async function loadAllData() {
 }
 
 async function saveTrainerInfo(name, photoUrl) {
-  await apiPost({ action: "updateTrainerInfo", name, assignedSchool: "", photoUrl });
+  await apiWrite({ action: "updateTrainerInfo", name, photoUrl });
   await loadAllData();
 }
 
 function assignmentsFor(trainerName) {
-  return assignments.filter(a => a.Trainer === trainerName);
+  return assignments.filter(a => sameName(a.Trainer, trainerName));
 }
 function formatDays(daysStr) {
   return (daysStr || "").split(",").filter(Boolean).join(", ") || "no days set";
@@ -816,14 +915,14 @@ function formatDays(daysStr) {
 function renderMyProfileCard() {
   const info = getTrainerProfile(currentTrainer);
   document.getElementById("trainer-avatar-wrap").innerHTML =
-    renderAvatar(currentTrainer, info.PhotoUrl, 56) + `<div><strong>${currentTrainer}</strong></div>`;
+    renderAvatar(currentTrainer, info.PhotoUrl, 56) + `<div><strong>${esc(currentTrainer)}</strong><div class="hint-text">${esc(currentTrainerEmail)}</div></div>`;
   document.getElementById("p-photoUrl").value = info.PhotoUrl || "";
 
   const mine = assignmentsFor(currentTrainer);
   const wrap = document.getElementById("my-assignments-wrap");
   wrap.innerHTML = mine.length === 0
     ? '<p class="hint-text">No school assigned yet.</p>'
-    : mine.map(a => `<div class="hint-text" style="margin-bottom:4px;"><strong>${a.School}</strong> — ${formatDays(a.Days)}</div>`).join("");
+    : mine.map(a => `<div class="hint-text" style="margin-bottom:4px;"><strong>${esc(a.School)}</strong> — ${esc(formatDays(a.Days))}</div>`).join("");
 }
 async function handleSaveMyProfile() {
   const success = document.getElementById("save-profile-success");
@@ -853,7 +952,7 @@ function populateSchoolSelect() {
   const sel = document.getElementById("plan-school-select");
   const mine = assignmentsFor(currentTrainer);
   sel.innerHTML = mine.length
-    ? mine.map(a => `<option value="${a.School}">${a.School} (${formatDays(a.Days)})</option>`).join("")
+    ? mine.map(a => `<option value="${esc(a.School)}">${esc(a.School)} (${esc(formatDays(a.Days))})</option>`).join("")
     : '<option value="">No school assigned yet — contact admin</option>';
   renderSchoolPlanSection();
 }
@@ -870,7 +969,7 @@ function renderSchoolPlanSection() {
   if (!schoolName) {
     fileWrap.innerHTML = '<p class="hint-text">Set an assigned school in "My profile" above, or ask admin to register one.</p>';
   } else if (info && info.PlanFileUrl) {
-    fileWrap.innerHTML = `<p class="hint-text">📄 <a href="${info.PlanFileUrl}" target="_blank" rel="noopener">${info.PlanFileName || "Yearly plan"}</a> — updated ${info.PlanUpdatedAt ? new Date(info.PlanUpdatedAt).toLocaleDateString() : ""}</p>`;
+    fileWrap.innerHTML = planFileHtml(info);
   } else {
     fileWrap.innerHTML = '<p class="hint-text">No yearly plan PDF uploaded yet for this school — ask admin to add one.</p>';
   }
@@ -883,9 +982,9 @@ function renderProgressList(containerId, schoolName, allowDelete) {
   if (entries.length === 0) { wrap.innerHTML = '<p class="empty-note">No progress logged yet for this school.</p>'; return; }
   wrap.innerHTML = `<table><thead><tr><th>Date</th><th>Trainer</th><th class="num">% complete</th><th>Topic covered</th><th>Remarks</th>${allowDelete ? "<th></th>" : ""}</tr></thead><tbody>
     ${entries.map(p => `<tr>
-      <td>${p.Date}</td><td>${p.Trainer}</td><td class="num">${p.PercentComplete}%</td>
-      <td>${p.TopicCovered || ""}</td><td>${p.Remarks || ""}</td>
-      ${allowDelete ? `<td><button class="btn-danger" onclick="deleteProgressEntry('${p.Id}')">Delete</button></td>` : ""}
+      <td>${esc(p.Date)}</td><td>${esc(p.Trainer)}</td><td class="num">${esc(p.PercentComplete)}%</td>
+      <td>${esc(p.TopicCovered)}</td><td>${esc(p.Remarks)}</td>
+      ${allowDelete ? `<td>${(currentAdminPasscode !== null || sameName(p.Trainer, currentTrainer)) ? `<button class="btn-danger" onclick="deleteProgressEntry(${js_(p.Id)})">Delete</button>` : ""}</td>` : ""}
     </tr>`).join("")}
   </tbody></table>`;
 }
@@ -906,23 +1005,23 @@ async function handleAddProgress(e) {
     remarks: document.getElementById("pr-remarks").value
   };
   try {
-    await apiPost(payload);
+    await apiWrite(payload);
     await loadAllData();
     document.getElementById("pr-topic").value = "";
     document.getElementById("pr-remarks").value = "";
     renderSchoolPlanSection();
-  } catch (err) { errEl.textContent = "Could not save. Try again."; errEl.classList.remove("hidden"); }
+  } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
   return false;
 }
 
 async function deleteProgressEntry(id) {
   if (!confirm("Delete this progress update?")) return;
   try {
-    await apiPost({ action: "deleteProgress", id });
+    await apiWrite({ action: "deleteProgress", id });
     await loadAllData();
     if (!document.getElementById("screen-trainer").classList.contains("hidden")) renderSchoolPlanSection();
     if (!document.getElementById("screen-admin").classList.contains("hidden") && adminView === "school-profile") renderSchoolProfile();
-  } catch (err) { alert("Could not delete. Try again."); }
+  } catch (err) { alert(friendlyError(err)); }
 }
 
 // ================================================================
@@ -930,7 +1029,7 @@ async function deleteProgressEntry(id) {
 // ================================================================
 function onWorkingDateChange() {
   const date = document.getElementById("working-date").value;
-  const existing = dailyLogs.find(l => l.Trainer === currentTrainer && l.Date === date);
+  const existing = dailyLogs.find(l => sameName(l.Trainer, currentTrainer) && l.Date === date);
   document.getElementById("f-loginTime").value = existing ? existing.LoginTime : "";
   document.getElementById("f-logoutTime").value = existing ? existing.LogoutTime : "";
   document.getElementById("f-breakMinutes").value = existing ? existing.BreakMinutes : "";
@@ -954,12 +1053,12 @@ async function handleSaveDailyLog(e) {
     schoolSessionHours: document.getElementById("f-schoolSessionHours").value || 0
   };
   try {
-    await apiPost(payload);
+    await apiWrite(payload);
     await loadAllData();
     renderTrainerHistory();
     success.classList.remove("hidden");
     setTimeout(() => success.classList.add("hidden"), 2000);
-  } catch (err) { alert("Could not save. Check your connection and try again."); }
+  } catch (err) { alert(friendlyError(err)); }
   btn.disabled = false; btn.textContent = "Save school day";
   return false;
 }
@@ -980,60 +1079,59 @@ async function handleAddSession(e) {
     remarks: document.getElementById("s-remarks").value
   };
   try {
-    await apiPost(payload);
+    await apiWrite(payload);
     await loadAllData();
     document.getElementById("s-course").value = "";
     document.getElementById("s-hours").value = "";
     document.getElementById("s-remarks").value = "";
     renderTodaySessions();
     renderTrainerHistory();
-  } catch (err) { errEl.textContent = "Could not save. Try again."; errEl.classList.remove("hidden"); }
+  } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
   return false;
 }
 
 async function deleteSessionEntry(id) {
   if (!confirm("Delete this session entry?")) return;
   try {
-    await apiPost({ action: "deleteSession", id });
+    await apiWrite({ action: "deleteSession", id });
     await loadAllData();
-    renderTodaySessions();
-    renderTrainerHistory();
-    if (document.getElementById("screen-admin").classList.contains("hidden") === false) {
-      if (adminView === "profile") renderProfile(); else renderOverview();
+    if (!document.getElementById("screen-trainer").classList.contains("hidden")) {
+      renderTodaySessions();
+      renderTrainerHistory();
+    } else if (!document.getElementById("screen-admin").classList.contains("hidden")) {
+      if (adminView === "profile") renderProfile();
+      else if (adminView === "add-log") onAdminLogContextChange();
+      else renderOverview();
     }
-  } catch (err) { alert("Could not delete. Try again."); }
+  } catch (err) { alert(friendlyError(err)); }
 }
 
 function renderTodaySessions() {
   const date = document.getElementById("working-date").value;
-  const mine = sessions.filter(s => s.Trainer === currentTrainer && s.Date === date);
+  const mine = sessions.filter(sx => sameName(sx.Trainer, currentTrainer) && sx.Date === date);
   const wrap = document.getElementById("today-sessions-wrap");
   if (mine.length === 0) { wrap.innerHTML = '<p class="hint-text">No sessions added for this date yet.</p>'; return; }
-  wrap.innerHTML = mine.map(s => `
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:0.85rem;">
-      <span><span class="chip">${s.Mode}</span> <strong>${s.SessionType}</strong> ${s.CourseTopic ? "— " + s.CourseTopic : ""} · ${s.Hours}h ${s.Remarks ? "· " + s.Remarks : ""}</span>
-      <button class="btn-danger" onclick="deleteSessionEntry('${s.Id}')">Delete</button>
-    </div>`).join("");
+  wrap.innerHTML = mine.map(sessionRowHtml).join("");
 }
 
 function renderTrainerHistory() {
-  const agg = buildDailyAggregates().filter(d => d.trainer === currentTrainer).sort((a, b) => a.date < b.date ? 1 : -1);
+  const agg = buildDailyAggregates().filter(d => sameName(d.trainer, currentTrainer)).sort((a, b) => a.date < b.date ? 1 : -1);
   const summaryWrap = document.getElementById("trainer-summary-wrap");
   if (agg.length === 0) {
     summaryWrap.innerHTML = '<p class="empty-note">No entries yet — start with today above.</p>';
   } else {
     summaryWrap.innerHTML = `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-      ${agg.map(d => `<tr><td>${d.date}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+      ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
     </tbody></table>`;
   }
 
-  const mySessions = sessions.filter(s => s.Trainer === currentTrainer).sort((a, b) => a.Date < b.Date ? 1 : -1);
+  const mySessions = sessions.filter(s => sameName(s.Trainer, currentTrainer)).sort((a, b) => a.Date < b.Date ? 1 : -1);
   const sessWrap = document.getElementById("trainer-sessions-wrap");
   if (mySessions.length === 0) {
     sessWrap.innerHTML = '<p class="empty-note">No session entries yet.</p>';
   } else {
     sessWrap.innerHTML = `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th></th></tr></thead><tbody>
-      ${mySessions.map(s => `<tr><td>${s.Date}</td><td>${s.Mode}</td><td>${s.SessionType}</td><td>${s.CourseTopic || ""}</td><td class="num">${s.Hours}h</td><td>${s.Remarks || ""}</td><td><button class="btn-danger" onclick="deleteSessionEntry('${s.Id}')">Delete</button></td></tr>`).join("")}
+      ${mySessions.map(s => `<tr><td>${esc(s.Date)}</td><td>${esc(s.Mode)}</td><td>${esc(s.SessionType)}</td><td>${esc(s.CourseTopic)}</td><td class="num">${esc(s.Hours)}h</td><td>${esc(s.Remarks)}</td><td><button class="btn-danger" onclick="deleteSessionEntry(${js_(s.Id)})">Delete</button></td></tr>`).join("")}
     </tbody></table>`;
   }
 }
@@ -1048,6 +1146,8 @@ function setAdminView(view) {
   document.getElementById("subnav-overview").classList.toggle("active", view === "overview");
   document.getElementById("subnav-trainers").classList.toggle("active", view === "directory" || view === "profile");
   document.getElementById("subnav-schools").classList.toggle("active", view === "school-directory" || view === "school-profile");
+  document.getElementById("subnav-addlog").classList.toggle("active", view === "add-log");
+  document.getElementById("admin-view-add-log").classList.toggle("hidden", view !== "add-log");
   document.getElementById("admin-view-overview").classList.toggle("hidden", view !== "overview");
   document.getElementById("admin-view-directory").classList.toggle("hidden", view !== "directory");
   document.getElementById("admin-view-profile").classList.toggle("hidden", view !== "profile");
@@ -1056,10 +1156,133 @@ function setAdminView(view) {
   if (view === "overview") { location.hash = ""; renderOverview(); }
   if (view === "directory") { location.hash = ""; renderDirectory(); }
   if (view === "profile") { location.hash = "profile/" + encodeURIComponent(profileTrainerName); renderProfile(); }
+  if (view === "add-log") { location.hash = ""; renderAdminAddLog(); }
   if (view === "school-directory") { location.hash = ""; renderSchoolDirectory(); }
   if (view === "school-profile") { location.hash = "school/" + encodeURIComponent(profileSchoolName); renderSchoolProfile(); }
 }
 function openProfile(name) { profileTrainerName = name; setAdminView("profile"); }
+
+// ================================================================
+// ADMIN — ADD / EDIT LOGS FOR ANY TRAINER (e.g. missed or earlier days)
+// ================================================================
+let pendingAddLogTrainer = null;
+function openAdminAddLog(name) { pendingAddLogTrainer = name; setAdminView("add-log"); }
+
+function adminKnownTrainerNames() {
+  const all = trainerProfiles.map(t => t.Name)
+    .concat(dailyLogs.map(l => l.Trainer), sessions.map(x => x.Trainer))
+    .filter(Boolean);
+  return [...new Set(all)].sort((a, b) => a.localeCompare(b));
+}
+
+function renderAdminAddLog() {
+  const sel = document.getElementById("adm-trainer");
+  const names = adminKnownTrainerNames();
+  const wanted = pendingAddLogTrainer || sel.value;
+  pendingAddLogTrainer = null;
+  sel.innerHTML = '<option value="">Select a trainer…</option>' + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  if (wanted && names.indexOf(wanted) !== -1) sel.value = wanted;
+
+  const typeSel = document.getElementById("adm-s-type");
+  if (!typeSel.options.length) typeSel.innerHTML = SESSION_TYPES.map(t => `<option>${esc(t)}</option>`).join("");
+
+  const dateEl = document.getElementById("adm-date");
+  dateEl.max = todayLocal();
+  if (!dateEl.value) dateEl.value = todayLocal();
+  onAdminLogContextChange();
+}
+
+function sessionRowHtml(sx) {
+  return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:0.85rem;">
+      <span><span class="chip">${esc(sx.Mode)}</span> <strong>${esc(sx.SessionType)}</strong> ${sx.CourseTopic ? "— " + esc(sx.CourseTopic) : ""} · ${esc(sx.Hours)}h ${sx.Remarks ? "· " + esc(sx.Remarks) : ""}</span>
+      <button class="btn-danger" onclick="deleteSessionEntry(${js_(sx.Id)})">Delete</button>
+    </div>`;
+}
+
+function onAdminLogContextChange() {
+  const trainer = document.getElementById("adm-trainer").value;
+  const date = document.getElementById("adm-date").value;
+  const existing = trainer ? dailyLogs.find(l => sameName(l.Trainer, trainer) && l.Date === date) : null;
+  document.getElementById("adm-loginTime").value = existing ? existing.LoginTime : "";
+  document.getElementById("adm-logoutTime").value = existing ? existing.LogoutTime : "";
+  document.getElementById("adm-breakMinutes").value = existing ? existing.BreakMinutes : "";
+  document.getElementById("adm-freeHours").value = existing ? existing.FreeHours : "";
+  document.getElementById("adm-schoolSessionHours").value = existing ? existing.SchoolSessionHours : "";
+
+  const wrap = document.getElementById("adm-sessions-wrap");
+  if (!trainer) { wrap.innerHTML = '<p class="hint-text">Select a trainer to see their sessions.</p>'; return; }
+  const list = sessions.filter(sx => sameName(sx.Trainer, trainer) && sx.Date === date);
+  wrap.innerHTML = list.length ? list.map(sessionRowHtml).join("") : '<p class="hint-text">No sessions on this date yet.</p>';
+}
+
+async function handleAdminSaveDailyLog(e) {
+  e.preventDefault();
+  const trainer = document.getElementById("adm-trainer").value;
+  const date = document.getElementById("adm-date").value;
+  const btn = document.getElementById("adm-save-daily-btn");
+  const okEl = document.getElementById("adm-save-daily-success");
+  const errEl = document.getElementById("adm-save-daily-error");
+  okEl.classList.add("hidden"); errEl.classList.add("hidden");
+  if (!trainer || !date) { errEl.textContent = "Choose a trainer and a date first."; errEl.classList.remove("hidden"); return false; }
+
+  btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    await apiWrite({
+      action: "saveDailyLog", trainer, date,
+      loginTime: document.getElementById("adm-loginTime").value,
+      logoutTime: document.getElementById("adm-logoutTime").value,
+      breakMinutes: document.getElementById("adm-breakMinutes").value || 0,
+      freeHours: document.getElementById("adm-freeHours").value || 0,
+      schoolSessionHours: document.getElementById("adm-schoolSessionHours").value || 0
+    });
+    await loadAllData();
+    okEl.classList.remove("hidden");
+    setTimeout(() => okEl.classList.add("hidden"), 2000);
+  } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
+  btn.disabled = false; btn.textContent = "Save school day";
+  return false;
+}
+
+async function handleAdminAddSession(e) {
+  e.preventDefault();
+  const trainer = document.getElementById("adm-trainer").value;
+  const date = document.getElementById("adm-date").value;
+  const errEl = document.getElementById("adm-session-error");
+  errEl.classList.add("hidden");
+  if (!trainer || !date) { errEl.textContent = "Choose a trainer and a date first."; errEl.classList.remove("hidden"); return false; }
+  const hours = Number(document.getElementById("adm-s-hours").value);
+  if (!hours || hours <= 0) { errEl.textContent = "Enter hours greater than 0."; errEl.classList.remove("hidden"); return false; }
+  try {
+    await apiWrite({
+      action: "saveSession", trainer, date,
+      mode: document.getElementById("adm-s-mode").value,
+      sessionType: document.getElementById("adm-s-type").value,
+      courseTopic: document.getElementById("adm-s-course").value,
+      hours: hours,
+      remarks: document.getElementById("adm-s-remarks").value
+    });
+    await loadAllData();
+    document.getElementById("adm-s-course").value = "";
+    document.getElementById("adm-s-hours").value = "";
+    document.getElementById("adm-s-remarks").value = "";
+    onAdminLogContextChange();
+  } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
+  return false;
+}
+
+async function handleResetPasscode() {
+  const input = document.getElementById("profile-newPasscode");
+  const msg = document.getElementById("reset-passcode-msg");
+  const pass = input.value.trim();
+  if (!pass) { msg.className = "error-text"; msg.textContent = "Type a new passcode first."; return; }
+  if (!confirm("Reset " + profileTrainerName + "'s passcode? Their old passcode will stop working.")) return;
+  try {
+    await apiWrite({ action: "resetTrainerPasscode", name: profileTrainerName, passcode: pass });
+    input.value = "";
+    msg.className = "success-text";
+    msg.textContent = "✓ Passcode reset — share the new one with the trainer.";
+  } catch (err) { msg.className = "error-text"; msg.textContent = friendlyError(err); }
+}
 function openSchoolProfile(name) { profileSchoolName = name; setAdminView("school-profile"); }
 async function handleSaveProfileInfo() {
   const success = document.getElementById("save-profile-info-success");
@@ -1076,19 +1299,19 @@ async function handleSaveAssignment() {
   if (!school) { errEl.textContent = "Select a school."; errEl.classList.remove("hidden"); return; }
   const days = Array.from(document.querySelectorAll(".assign-day-checkbox:checked")).map(el => el.value);
   try {
-    await apiPost({ action: "saveAssignment", trainer: profileTrainerName, school, days });
+    await apiWrite({ action: "saveAssignment", trainer: profileTrainerName, school, days });
     await loadAllData();
     renderProfile();
-  } catch (err) { errEl.textContent = "Could not save assignment."; errEl.classList.remove("hidden"); }
+  } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
 }
 
 async function deleteAssignmentEntry(id) {
   if (!confirm("Remove this school assignment?")) return;
   try {
-    await apiPost({ action: "deleteAssignment", id });
+    await apiWrite({ action: "deleteAssignment", id });
     await loadAllData();
     renderProfile();
-  } catch (err) { alert("Could not remove assignment."); }
+  } catch (err) { alert(friendlyError(err)); }
 }
 
 function renderSchoolDirectory() {
@@ -1099,8 +1322,8 @@ function renderSchoolDirectory() {
   wrap.innerHTML = names.map(n => {
     const latest = latestProgressFor(n);
     const info = schools.find(s => s.SchoolName === n);
-    return `<div class="trainer-card" onclick="openSchoolProfile('${n}')">
-      <span><div class="name">${n}</div><div class="meta">${info && info.PlanFileUrl ? "Plan uploaded" : "No plan uploaded yet"}</div></span>
+    return `<div class="trainer-card" onclick="openSchoolProfile(${js_(n)})">
+      <span><div class="name">${esc(n)}</div><div class="meta">${info && info.PlanFileUrl ? "Plan uploaded" : "No plan uploaded yet"}</div></span>
       <span class="meta">${latest ? latest.PercentComplete + "% complete" : "No progress logged"}</span>
     </div>`;
   }).join("");
@@ -1126,7 +1349,7 @@ function renderSchoolProfile() {
   const info = schools.find(s => s.SchoolName === name);
   const fileWrap = document.getElementById("school-plan-file-info");
   fileWrap.innerHTML = info && info.PlanFileUrl
-    ? `<p class="hint-text">📄 <a href="${info.PlanFileUrl}" target="_blank" rel="noopener">${info.PlanFileName || "Yearly plan"}</a> — updated ${info.PlanUpdatedAt ? new Date(info.PlanUpdatedAt).toLocaleDateString() : ""}</p>`
+    ? planFileHtml(info)
     : '<p class="hint-text">No yearly plan PDF uploaded yet.</p>';
 
   const entries = planProgress.filter(p => p.School === name).sort((a, b) => a.Date < b.Date ? 1 : -1);
@@ -1181,8 +1404,8 @@ window.addEventListener("hashchange", () => {
   } else if (hash.indexOf("#school/") === 0) {
     profileSchoolName = decodeURIComponent(hash.slice(8));
     setAdminView("school-profile");
-  } else if (hash === "") {
-    setAdminView("overview");
+  } else if (hash === "" && (adminView === "profile" || adminView === "school-profile")) {
+    setAdminView("overview"); // browser Back from a profile page
   }
 });
 
@@ -1190,10 +1413,10 @@ window.addEventListener("hashchange", () => {
 // ADMIN — OVERVIEW
 // ================================================================
 function populateTrainerFilter() {
-  const names = [...new Set(dailyLogs.map(l => l.Trainer).concat(sessions.map(s => s.Trainer)))].sort();
+  const names = adminKnownTrainerNames();
   const sel = document.getElementById("filter-trainer");
   const current = sel.value;
-  sel.innerHTML = '<option value="all">All trainers</option>' + names.map(n => `<option value="${n}">${n}</option>`).join("");
+  sel.innerHTML = '<option value="all">All trainers</option>' + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
   sel.value = names.includes(current) ? current : "all";
 }
 function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
@@ -1222,7 +1445,7 @@ function renderOverview() {
   const agg = getFilteredAggregates();
   const sess = getFilteredSessions();
 
-  const trainerNames = [...new Set(dailyLogs.map(l => l.Trainer).concat(sessions.map(s => s.Trainer)))];
+  const trainerNames = adminKnownTrainerNames();
   let under = 0, proper = 0, over = 0;
   agg.forEach(d => { if (d.band === "under") under++; else if (d.band === "over") over++; else proper++; });
   document.getElementById("stat-trainers").textContent = trainerNames.length;
@@ -1277,14 +1500,19 @@ function renderOverview() {
   if (agg.length === 0) { wrap.innerHTML = '<p class="empty-note">No entries match these filters.</p>'; return; }
   const sorted = agg.slice().sort((a, b) => a.date < b.date ? 1 : -1);
   wrap.innerHTML = `<table><thead><tr><th>Trainer</th><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-    ${sorted.map(d => `<tr><td><a href="#profile/${encodeURIComponent(d.trainer)}" onclick="openProfile('${d.trainer}'); return false;">${d.trainer}</a></td><td>${d.date}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+    ${sorted.map(d => `<tr><td><a href="#profile/${encodeURIComponent(d.trainer)}" onclick="openProfile(${js_(d.trainer)}); return false;">${esc(d.trainer)}</a></td><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
   </tbody></table>`;
 }
 
+function csvCell(v) {
+  let t = String(v === undefined || v === null ? "" : v);
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; // stops Excel/Sheets treating text as a formula
+  return '"' + t.replace(/"/g, '""') + '"';
+}
 function exportCSV() {
   const agg = getFilteredAggregates();
   const header = "Trainer,Date,SchoolHours,SessionHours,TotalHours,Status\n";
-  const rows = agg.map(d => [d.trainer, d.date, d.schoolHours, d.sessionHours.toFixed(2), d.total.toFixed(2), bandLabel(d.band)].join(",")).join("\n");
+  const rows = agg.map(d => [d.trainer, d.date, d.schoolHours, d.sessionHours.toFixed(2), d.total.toFixed(2), bandLabel(d.band)].map(csvCell).join(",")).join("\n");
   const blob = new Blob([header + rows], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a"); a.href = url; a.download = "uwr-trainer-desk.csv"; a.click();
@@ -1296,7 +1524,7 @@ function exportCSV() {
 // ================================================================
 function renderDirectory() {
   const q = (document.getElementById("trainer-search").value || "").toLowerCase();
-  const names = [...new Set(dailyLogs.map(l => l.Trainer).concat(sessions.map(s => s.Trainer)))].sort();
+  const names = adminKnownTrainerNames();
   const filtered = names.filter(n => n.toLowerCase().includes(q));
   const wrap = document.getElementById("trainer-directory-list");
   if (filtered.length === 0) { wrap.innerHTML = '<p class="empty-note">No trainers match your search.</p>'; return; }
@@ -1306,12 +1534,12 @@ function renderDirectory() {
     const info = getTrainerProfile(n);
     const mine = assignmentsFor(n);
     const schoolLabel = mine.length ? mine.map(a => a.School).join(", ") : "No school assigned";
-    return `<div class="trainer-card" onclick="openProfile('${n}')">
+    return `<div class="trainer-card" onclick="openProfile(${js_(n)})">
       <span style="display:flex; align-items:center; gap:12px;">
         ${renderAvatar(n, info.PhotoUrl, 36)}
         <span>
-          <div class="name">${n}</div>
-          <div class="meta">${schoolLabel}</div>
+          <div class="name">${esc(n)}</div>
+          <div class="meta">${esc(schoolLabel)}</div>
         </span>
       </span>
       <span class="meta">${days} day${days === 1 ? "" : "s"} logged</span>
@@ -1325,18 +1553,20 @@ function renderProfile() {
   const info = getTrainerProfile(name);
   document.getElementById("profile-avatar-wrap").innerHTML = renderAvatar(name, info.PhotoUrl, 48);
   document.getElementById("profile-photoUrl").value = info.PhotoUrl || "";
+  document.getElementById("profile-email").textContent = info.Email || "";
+  document.getElementById("reset-passcode-msg").textContent = "";
 
   // Assignment management
   const mine = assignmentsFor(name);
   document.getElementById("profile-assignments-wrap").innerHTML = mine.length === 0
     ? '<p class="hint-text">No schools assigned yet.</p>'
     : mine.map(a => `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid var(--line); font-size:0.85rem;">
-        <span><strong>${a.School}</strong> — ${formatDays(a.Days)}</span>
-        <button class="btn-danger" onclick="deleteAssignmentEntry('${a.Id}')">Remove</button>
+        <span><strong>${esc(a.School)}</strong> — ${esc(formatDays(a.Days))}</span>
+        <button class="btn-danger" onclick="deleteAssignmentEntry(${js_(a.Id)})">Remove</button>
       </div>`).join("");
   const schoolSel = document.getElementById("assign-school-select");
   const allSchools = schoolNamesList();
-  schoolSel.innerHTML = '<option value="">Select a school…</option>' + allSchools.map(s => `<option value="${s}">${s}</option>`).join("");
+  schoolSel.innerHTML = '<option value="">Select a school…</option>' + allSchools.map(sc => `<option value="${esc(sc)}">${esc(sc)}</option>`).join("");
   document.getElementById("assign-days-checkboxes").innerHTML = DAYS.map(d =>
     `<label style="display:flex; align-items:center; gap:4px; font-size:0.8rem;"><input type="checkbox" class="assign-day-checkbox" value="${d}" style="width:auto;" />${d}</label>`
   ).join("");
@@ -1376,13 +1606,13 @@ function renderProfile() {
   const summaryWrap = document.getElementById("profile-summary-wrap");
   summaryWrap.innerHTML = agg.length === 0 ? '<p class="empty-note">No entries yet.</p>' :
     `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-    ${agg.map(d => `<tr><td>${d.date}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+    ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
     </tbody></table>`;
 
   const sessWrap = document.getElementById("profile-sessions-wrap");
   sessWrap.innerHTML = mySessions.length === 0 ? '<p class="empty-note">No session entries yet.</p>' :
     `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th></th></tr></thead><tbody>
-    ${mySessions.map(s => `<tr><td>${s.Date}</td><td>${s.Mode}</td><td>${s.SessionType}</td><td>${s.CourseTopic || ""}</td><td class="num">${s.Hours}h</td><td>${s.Remarks || ""}</td><td><button class="btn-danger" onclick="deleteSessionEntry('${s.Id}')">Delete</button></td></tr>`).join("")}
+    ${mySessions.map(s => `<tr><td>${esc(s.Date)}</td><td>${esc(s.Mode)}</td><td>${esc(s.SessionType)}</td><td>${esc(s.CourseTopic)}</td><td class="num">${esc(s.Hours)}h</td><td>${esc(s.Remarks)}</td><td><button class="btn-danger" onclick="deleteSessionEntry(${js_(s.Id)})">Delete</button></td></tr>`).join("")}
     </tbody></table>`;
 }
 
@@ -1397,28 +1627,26 @@ if ("serviceWorker" in navigator) {
 (async function initApp() {
   if (!checkConfig()) return;
   const remembered = localStorage.getItem("uwr_remember_trainer");
-  if (remembered) {
-    try {
-      const { name, passcode } = JSON.parse(remembered);
-      if (name && passcode) {
-        const result = await apiPost({ action: "getTrainerData", name, passcode });
-        if (result.status === "ok") {
-          currentTrainer = name;
-          currentTrainerPasscode = passcode;
-          dailyLogs = result.dailyLogs || [];
-          sessions = result.sessions || [];
-          trainerProfiles = result.trainers || [];
-          schools = result.schools || [];
-          planProgress = result.planProgress || [];
-          assignments = result.assignments || [];
-          showScreen("trainer");
-          return;
-        }
+  if (!remembered) return;
+  try {
+    const { email, passcode } = JSON.parse(remembered);
+    if (email && passcode) {
+      const result = await apiPost({ action: "getTrainerData", email, passcode });
+      if (result.status === "ok") {
+        currentTrainer = result.name;
+        currentTrainerEmail = email;
+        currentTrainerPasscode = passcode;
+        applyData(result);
+        showScreen("trainer");
+        return;
       }
-    } catch (err) { /* fall through to normal login screen */ }
-    forgetTrainer();
+      forgetTrainer(); // saved login no longer valid (e.g. passcode was reset)
+      return;
+    }
+  } catch (err) {
+    if (err && err.network) return; // offline: keep the saved login, show the login screen for now
   }
-  loadTrainerNames();
+  forgetTrainer(); // old-format or unreadable saved login
 })();
 </script>
 </body>
