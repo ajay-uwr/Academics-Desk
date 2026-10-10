@@ -72,6 +72,7 @@
   .detail-line { font-size: 0.78rem; color: var(--ink-soft); margin: 2px 0; line-height: 1.4; }
   .detail-line strong { color: var(--ink); font-weight: 600; }
   .file-link { white-space: nowrap; }
+  body.util-off .util-only { display: none !important; }
   .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.7rem; border: 1px solid var(--line); color: var(--ink-soft); }
 
   .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
@@ -112,7 +113,10 @@
 
 <script>
   const CONFIG = { WEB_APP_URL: "https://script.google.com/macros/s/AKfycby4AdwwWocRMb16sK_q7IkxJKlNbZpho0EbzyjSLY6NyfBqF0XOVbpQKWhFf0UmO-SJ/exec" };
-  const UTIL = { WORKDAY_HOURS: 8, UNDER_MAX: 5, OVER_MIN: 7.5 };
+  // ENABLED switches the Under / Properly / Over-utilized feature (labels, cards,
+    // chart, CSV column) on or off for ADMIN screens. It is on hold for now: set to true
+    // to bring it back. Trainers never see it, whatever this is set to.
+  const UTIL = { ENABLED: false, WORKDAY_HOURS: 8, UNDER_MAX: 5, OVER_MIN: 7.5 };
   const COMPETITION_TYPE = "Competition Training";
   const ACHIEVEMENT_TYPES = ["Mentoring", "Competition", "Award / recognition", "Other"];
   const ACHIEVEMENT_RESULTS = [
@@ -399,14 +403,16 @@
 
       <div class="stat-grid">
         <div class="card stat-card"><div class="stat-label">Trainers</div><div class="stat-value" id="stat-trainers">0</div></div>
-        <div class="card stat-card"><div class="stat-label">Under-utilized days</div><div class="stat-value" id="stat-under">0</div></div>
-        <div class="card stat-card"><div class="stat-label">Properly utilized days</div><div class="stat-value" id="stat-proper">0</div></div>
-        <div class="card stat-card"><div class="stat-label">Over-utilized days</div><div class="stat-value" id="stat-over">0</div></div>
+        <div class="card stat-card"><div class="stat-label">Days logged</div><div class="stat-value" id="stat-days">0</div></div>
+        <div class="card stat-card"><div class="stat-label">Total hours</div><div class="stat-value" id="stat-hours">0</div></div>
+        <div class="card stat-card util-only"><div class="stat-label">Under-utilized days</div><div class="stat-value" id="stat-under">0</div></div>
+        <div class="card stat-card util-only"><div class="stat-label">Properly utilized days</div><div class="stat-value" id="stat-proper">0</div></div>
+        <div class="card stat-card util-only"><div class="stat-label">Over-utilized days</div><div class="stat-value" id="stat-over">0</div></div>
       </div>
 
       <div class="grid-2">
         <div class="card chart-panel"><h3>Hours by trainer, by session type</h3><canvas id="chart-hours"></canvas></div>
-        <div class="card chart-panel"><h3>Utilization % by trainer</h3><canvas id="chart-util"></canvas></div>
+        <div class="card chart-panel util-only"><h3>Utilization % by trainer</h3><canvas id="chart-util"></canvas></div>
       </div>
       <div class="card chart-panel"><h3>Trend over time</h3><canvas id="chart-trend"></canvas></div>
 
@@ -799,6 +805,7 @@ function utilizationBand(hours) {
   if (hours > UTIL.OVER_MIN) return "over";
   return "proper";
 }
+function applyUtilFlag() { document.body.classList.toggle("util-off", !UTIL.ENABLED); }
 function bandLabel(band) { return band === "under" ? "Under-utilized" : band === "over" ? "Over-utilized" : "Properly utilized"; }
 
 function isoWeek(dateStr) {
@@ -1302,8 +1309,8 @@ function renderTrainerHistory() {
   if (agg.length === 0) {
     summaryWrap.innerHTML = '<p class="empty-note">No entries yet — start with today above.</p>';
   } else {
-    summaryWrap.innerHTML = `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th>Status</th><th>Details</th></tr></thead><tbody>
-      ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
+    summaryWrap.innerHTML = `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th>Details</th></tr></thead><tbody>
+      ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
     </tbody></table>`;
   }
 
@@ -1778,6 +1785,8 @@ function renderOverview() {
   document.getElementById("stat-under").textContent = under;
   document.getElementById("stat-proper").textContent = proper;
   document.getElementById("stat-over").textContent = over;
+  document.getElementById("stat-days").textContent = agg.length;
+  document.getElementById("stat-hours").textContent = agg.reduce((t, d) => t + d.total, 0).toFixed(1);
 
   const ach = getFilteredAchievements();
   renderExtraEffort(sess, ach);
@@ -1803,18 +1812,20 @@ function renderOverview() {
   });
 
   destroyChart("util");
-  const byTrainerAgg = {};
-  agg.forEach(d => { byTrainerAgg[d.trainer] = byTrainerAgg[d.trainer] || { total: 0, days: 0 }; byTrainerAgg[d.trainer].total += d.total; byTrainerAgg[d.trainer].days += 1; });
-  const utilLabels = Object.keys(byTrainerAgg);
-  const utilData = utilLabels.map(t => { const a = byTrainerAgg[t]; const avg = a.days > 0 ? a.total / a.days : 0; return Math.round((avg / UTIL.WORKDAY_HOURS) * 100); });
-  charts.util = new Chart(document.getElementById("chart-util"), {
-    type: "bar",
-    data: { labels: utilLabels, datasets: [{ label: "Utilization %", data: utilData, backgroundColor: utilData.map(pct => {
-      const hrs = (pct / 100) * UTIL.WORKDAY_HOURS; const band = utilizationBand(hrs);
-      return band === "under" ? "#B5574A" : band === "over" ? "#B9862E" : "#603D98";
-    }) }] },
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100 } } }
-  });
+  if (UTIL.ENABLED) {
+    const byTrainerAgg = {};
+    agg.forEach(d => { byTrainerAgg[d.trainer] = byTrainerAgg[d.trainer] || { total: 0, days: 0 }; byTrainerAgg[d.trainer].total += d.total; byTrainerAgg[d.trainer].days += 1; });
+    const utilLabels = Object.keys(byTrainerAgg);
+    const utilData = utilLabels.map(t => { const a = byTrainerAgg[t]; const avg = a.days > 0 ? a.total / a.days : 0; return Math.round((avg / UTIL.WORKDAY_HOURS) * 100); });
+    charts.util = new Chart(document.getElementById("chart-util"), {
+      type: "bar",
+      data: { labels: utilLabels, datasets: [{ label: "Utilization %", data: utilData, backgroundColor: utilData.map(pct => {
+        const hrs = (pct / 100) * UTIL.WORKDAY_HOURS; const band = utilizationBand(hrs);
+        return band === "under" ? "#B5574A" : band === "over" ? "#B9862E" : "#603D98";
+      }) }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100 } } }
+    });
+  }
 
   const trendMap = {};
   agg.forEach(d => { const k = bucketKey(d.date, period); trendMap[k] = (trendMap[k] || 0) + d.total; });
@@ -1830,8 +1841,8 @@ function renderOverview() {
   const wrap = document.getElementById("admin-table-wrap");
   if (agg.length === 0) { wrap.innerHTML = '<p class="empty-note">No entries match these filters.</p>'; return; }
   const sorted = agg.slice().sort((a, b) => a.date < b.date ? 1 : -1);
-  wrap.innerHTML = `<table><thead><tr><th>Trainer</th><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th>Status</th><th>Details</th></tr></thead><tbody>
-    ${sorted.map(d => `<tr><td><a href="#profile/${encodeURIComponent(d.trainer)}" onclick="openProfile(${js_(d.trainer)}); return false;">${esc(d.trainer)}</a></td><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
+  wrap.innerHTML = `<table><thead><tr><th>Trainer</th><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th class="util-only">Status</th><th>Details</th></tr></thead><tbody>
+    ${sorted.map(d => `<tr><td><a href="#profile/${encodeURIComponent(d.trainer)}" onclick="openProfile(${js_(d.trainer)}); return false;">${esc(d.trainer)}</a></td><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td class="util-only"><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
   </tbody></table>`;
 }
 
@@ -1842,8 +1853,8 @@ function csvCell(v) {
 }
 function exportCSV() {
   const agg = getFilteredAggregates();
-  const header = "Trainer,Date,SchoolHours,SessionHours,WFHHours,CompetitionHours,TotalHours,Status,Details\n";
-  const rows = agg.map(d => [d.trainer, d.date, d.schoolHours, d.sessionHours.toFixed(2), d.wfhHours.toFixed(2), d.competitionHours.toFixed(2), d.total.toFixed(2), bandLabel(d.band), dayDetailsText(d)].map(csvCell).join(",")).join("\n");
+  const header = "Trainer,Date,SchoolHours,SessionHours,WFHHours,CompetitionHours,TotalHours," + (UTIL.ENABLED ? "Status," : "") + "Details\n";
+  const rows = agg.map(d => [d.trainer, d.date, d.schoolHours, d.sessionHours.toFixed(2), d.wfhHours.toFixed(2), d.competitionHours.toFixed(2), d.total.toFixed(2)].concat(UTIL.ENABLED ? [bandLabel(d.band)] : [], [dayDetailsText(d)]).map(csvCell).join(",")).join("\n");
   const blob = new Blob([header + rows], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a"); a.href = url; a.download = "uwr-trainer-desk.csv"; a.click();
@@ -1910,8 +1921,8 @@ function renderProfile() {
   document.getElementById("profile-stat-grid").innerHTML = `
     <div class="card stat-card"><div class="stat-label">Days logged</div><div class="stat-value">${agg.length}</div></div>
     <div class="card stat-card"><div class="stat-label">Total productive hours</div><div class="stat-value">${totalHours.toFixed(1)}</div></div>
-    <div class="card stat-card"><div class="stat-label">Properly utilized days</div><div class="stat-value">${proper}</div></div>
-    <div class="card stat-card"><div class="stat-label">Under / Over</div><div class="stat-value">${under} / ${over}</div></div>
+    <div class="card stat-card util-only"><div class="stat-label">Properly utilized days</div><div class="stat-value">${proper}</div></div>
+    <div class="card stat-card util-only"><div class="stat-label">Under / Over</div><div class="stat-value">${under} / ${over}</div></div>
     <div class="card stat-card"><div class="stat-label">WFH (hrs)</div><div class="stat-value">${agg.reduce((t, d) => t + d.wfhHours, 0).toFixed(1)}</div></div>
     <div class="card stat-card"><div class="stat-label">Competition training (hrs)</div><div class="stat-value">${agg.reduce((t, d) => t + d.competitionHours, 0).toFixed(1)}</div></div>
     <div class="card stat-card"><div class="stat-label">Achievements</div><div class="stat-value">${achievements.filter(a => sameName(a.Trainer, name)).length}</div></div>`;
@@ -1941,8 +1952,8 @@ function renderProfile() {
 
   const summaryWrap = document.getElementById("profile-summary-wrap");
   summaryWrap.innerHTML = agg.length === 0 ? '<p class="empty-note">No entries yet.</p>' :
-    `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th>Status</th><th>Details</th></tr></thead><tbody>
-    ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
+    `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th class="util-only">Status</th><th>Details</th></tr></thead><tbody>
+    ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td class="util-only"><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
     </tbody></table>`;
 
   const sessWrap = document.getElementById("profile-sessions-wrap");
@@ -1956,6 +1967,7 @@ function renderProfile() {
 // INIT
 // ================================================================
 checkConfig();
+applyUtilFlag();
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(() => {});
 }
