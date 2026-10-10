@@ -67,9 +67,14 @@
   .badge.under { background: var(--rose); }
   .badge.proper { background: var(--green); }
   .badge.over { background: var(--gold); }
+  .badge.gold { background: var(--gold); }
+  td.details { min-width: 240px; max-width: 460px; white-space: normal; }
+  .detail-line { font-size: 0.78rem; color: var(--ink-soft); margin: 2px 0; line-height: 1.4; }
+  .detail-line strong { color: var(--ink); font-weight: 600; }
+  .file-link { white-space: nowrap; }
   .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.7rem; border: 1px solid var(--line); color: var(--ink-soft); }
 
-  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
   @media (max-width: 720px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
   .stat-card { padding: 14px 16px; }
   .stat-label { font-size: 0.72rem; color: var(--ink-soft); }
@@ -108,11 +113,22 @@
 <script>
   const CONFIG = { WEB_APP_URL: "https://script.google.com/macros/s/AKfycby4AdwwWocRMb16sK_q7IkxJKlNbZpho0EbzyjSLY6NyfBqF0XOVbpQKWhFf0UmO-SJ/exec" };
   const UTIL = { WORKDAY_HOURS: 8, UNDER_MAX: 5, OVER_MIN: 7.5 };
-  const SESSION_TYPES = ["Horizon Session", "One-on-One Session", "Webinar", "Competition Training", "Online Call", "Documentation", "Workshop", "Other"];
+  const COMPETITION_TYPE = "Competition Training";
+  const ACHIEVEMENT_TYPES = ["Mentoring", "Competition", "Award / recognition", "Other"];
+  const ACHIEVEMENT_RESULTS = [
+    { value: "", label: "— (not a competition)" },
+    { value: "Participated", label: "Participated" },
+    { value: "Won", label: "Won a prize" }
+  ];
+  const SESSION_TYPES = ["Horizon Session", "One-on-One Session", "Webinar", "Competition Training", "Online Call", "Documentation", "Workshop", "WFH", "Other"];
+  const WFH_TYPE = "WFH";
+  const SESSION_TYPE_LABELS = { "WFH": "WFH (work from home)" };
+  const MAX_FILES = 3, MAX_FILE_MB = 10;
+  const ATTACH_EXTS = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "csv", "txt", "png", "jpg", "jpeg", "gif", "webp"];
   const TYPE_COLORS = {
     "Horizon Session": "#603D98", "One-on-One Session": "#B9862E", "Webinar": "#8E9E93",
     "Competition Training": "#B5574A", "Online Call": "#6D8CA6", "Documentation": "#A98BC1",
-    "Workshop": "#C9A15A", "Other": "#9C9284", "School": "#20262B"
+    "Workshop": "#C9A15A", "WFH": "#4F8A8B", "Other": "#9C9284", "School": "#20262B"
   };
 </script>
 
@@ -275,6 +291,7 @@
           <label class="field"><span class="field-label">Free hours</span><input type="number" min="0" step="0.25" id="f-freeHours" placeholder="0" /></label>
           <label class="field"><span class="field-label">Session hours at school</span><input type="number" min="0" step="0.25" id="f-schoolSessionHours" placeholder="0" /></label>
         </div>
+        <label class="field"><span class="field-label">Notes for the day (optional) — e.g. what you did in free hours</span><input type="text" id="f-dayRemarks" maxlength="500" /></label>
         <div style="display:flex; align-items:center; gap:12px; margin-top:6px;">
           <button class="btn-primary" type="submit" id="save-daily-btn">Save school day</button>
           <span id="save-daily-success" class="success-text hidden">✓ Saved</span>
@@ -286,31 +303,60 @@
       <h2 style="font-size:1.1rem; margin-bottom:16px;">Add a session</h2>
       <form onsubmit="return handleAddSession(event)">
         <div class="session-row-add">
-          <label class="field" style="margin:0;"><span class="field-label">Mode</span>
+          <label class="field" style="margin:0;" id="s-mode-field"><span class="field-label">Mode</span>
             <select id="s-mode"><option>Online</option><option>Offline</option></select>
           </label>
-          <label class="field" style="margin:0;"><span class="field-label">Session type</span>
-            <select id="s-type"></select>
+          <label class="field" style="margin:0;"><span class="field-label">Type of work</span>
+            <select id="s-type" onchange="onSessionTypeChange('s')"></select>
           </label>
-          <label class="field" style="margin:0;"><span class="field-label">Course / topic</span>
-            <input type="text" id="s-course" placeholder="e.g. Horizon STCB" />
+          <label class="field" style="margin:0;"><span class="field-label" id="s-course-label">Course / topic</span>
+            <input type="text" id="s-course" maxlength="200" placeholder="e.g. Horizon STCB" />
           </label>
           <label class="field" style="margin:0;"><span class="field-label">Hours</span>
             <input type="number" min="0" step="0.25" id="s-hours" placeholder="0" />
           </label>
-          <label class="field" style="margin:0;"><span class="field-label">Remarks</span>
-            <input type="text" id="s-remarks" placeholder="optional" />
+          <label class="field" style="margin:0;"><span class="field-label" id="s-remarks-label">Remarks</span>
+            <input type="text" id="s-remarks" maxlength="500" placeholder="optional" />
           </label>
-          <button class="btn-primary" type="submit">Add</button>
+          <button class="btn-primary" type="submit" id="s-add-btn">Add</button>
         </div>
+        <label class="field" style="margin:12px 0 0;">
+          <span class="field-label">Attach files (optional) — PDF, Word, Excel, PowerPoint, CSV, text or images · up to 3 files, 10 MB each</span>
+          <input type="file" id="s-files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.png,.jpg,.jpeg,.gif,.webp" />
+        </label>
+        <div id="s-upload-status" class="hint-text" style="margin-top:6px;"></div>
       </form>
       <div id="session-add-error" class="error-text hidden"></div>
       <h3 class="section-title" style="margin-top:16px;">Sessions on this date</h3>
       <div id="today-sessions-wrap"></div>
     </div>
 
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h2 style="font-size:1.1rem; margin-bottom:6px;">Achievements</h2>
+      <p class="hint-text" style="margin-bottom:16px;">Mentoring, competitions, prizes and other recognition — add as many as you like, for any date.</p>
+      <form onsubmit="return handleAddAchievement(event)">
+        <div class="grid-3">
+          <label class="field"><span class="field-label">Date</span><input type="date" id="ach-date" /></label>
+          <label class="field"><span class="field-label">Type</span><select id="ach-type"></select></label>
+          <label class="field"><span class="field-label">Result (if a competition)</span><select id="ach-result"></select></label>
+        </div>
+        <label class="field"><span class="field-label">What was it?</span><input type="text" id="ach-title" maxlength="200" placeholder="e.g. Mentored the Grade 8 robotics club" /></label>
+        <div class="grid-3">
+          <label class="field"><span class="field-label">Grade / students (optional)</span><input type="text" id="ach-grade" maxlength="60" placeholder="e.g. Grade 8" /></label>
+          <label class="field"><span class="field-label">School (optional)</span><select id="ach-school"></select></label>
+          <label class="field"><span class="field-label">Prize / details (optional)</span><input type="text" id="ach-details" maxlength="500" placeholder="e.g. 1st prize, junior category" /></label>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button class="btn-primary" type="submit">Add achievement</button>
+          <span id="ach-error" class="error-text hidden"></span>
+        </div>
+      </form>
+      <h3 class="section-title">Your achievements</h3>
+      <div id="ach-list-wrap"></div>
+    </div>
+
     <h3 class="section-title">Your daily summary</h3>
-    <div class="card" id="trainer-summary-wrap" style="margin-bottom:20px;"></div>
+    <div class="card" id="trainer-summary-wrap" style="margin-bottom:20px; overflow-x:auto;"></div>
 
     <h3 class="section-title">All your session entries</h3>
     <div class="card" id="trainer-sessions-wrap"></div>
@@ -363,6 +409,12 @@
         <div class="card chart-panel"><h3>Utilization % by trainer</h3><canvas id="chart-util"></canvas></div>
       </div>
       <div class="card chart-panel"><h3>Trend over time</h3><canvas id="chart-trend"></canvas></div>
+
+      <h3 class="section-title" id="extra-effort-title">Extra effort by trainer</h3>
+      <div class="card" id="extra-effort-wrap" style="margin-bottom:20px; overflow-x:auto;"></div>
+
+      <h3 class="section-title" id="admin-achievements-title">Achievements</h3>
+      <div class="card" id="admin-achievements-wrap" style="margin-bottom:20px;"></div>
 
       <h3 class="section-title" id="table-title">All daily entries</h3>
       <div class="card" id="admin-table-wrap" style="overflow-x:auto;"></div>
@@ -427,9 +479,11 @@
         <div class="card chart-panel"><h3>Trend over time</h3><canvas id="chart-profile-trend"></canvas></div>
       </div>
       <h3 class="section-title">Daily summary</h3>
-      <div class="card" id="profile-summary-wrap" style="margin-bottom:20px;"></div>
+      <div class="card" id="profile-summary-wrap" style="margin-bottom:20px; overflow-x:auto;"></div>
       <h3 class="section-title">Session entries</h3>
-      <div class="card" id="profile-sessions-wrap"></div>
+      <div class="card" id="profile-sessions-wrap" style="margin-bottom:20px;"></div>
+      <h3 class="section-title">Achievements</h3>
+      <div class="card" id="profile-achievements-wrap"></div>
     </div>
 
     <!-- ADD LOGS (admin enters logs on a trainer's behalf, e.g. for missed days) -->
@@ -453,6 +507,7 @@
             <label class="field"><span class="field-label">Free hours</span><input type="number" min="0" step="0.25" id="adm-freeHours" placeholder="0" /></label>
             <label class="field"><span class="field-label">Session hours at school</span><input type="number" min="0" step="0.25" id="adm-schoolSessionHours" placeholder="0" /></label>
           </div>
+          <label class="field"><span class="field-label">Notes for the day (optional) — e.g. what was done in free hours</span><input type="text" id="adm-dayRemarks" maxlength="500" /></label>
           <div style="display:flex; align-items:center; gap:12px; margin-top:6px;">
             <button class="btn-primary" type="submit" id="adm-save-daily-btn">Save school day</button>
             <span id="adm-save-daily-success" class="success-text hidden">✓ Saved</span>
@@ -465,27 +520,55 @@
         <h2 style="font-size:1.1rem; margin-bottom:16px;">Add a session</h2>
         <form onsubmit="return handleAdminAddSession(event)">
           <div class="session-row-add">
-            <label class="field" style="margin:0;"><span class="field-label">Mode</span>
+            <label class="field" style="margin:0;" id="adm-s-mode-field"><span class="field-label">Mode</span>
               <select id="adm-s-mode"><option>Online</option><option>Offline</option></select>
             </label>
-            <label class="field" style="margin:0;"><span class="field-label">Session type</span>
-              <select id="adm-s-type"></select>
+            <label class="field" style="margin:0;"><span class="field-label">Type of work</span>
+              <select id="adm-s-type" onchange="onSessionTypeChange('adm-s')"></select>
             </label>
-            <label class="field" style="margin:0;"><span class="field-label">Course / topic</span>
-              <input type="text" id="adm-s-course" placeholder="e.g. Horizon STCB" />
+            <label class="field" style="margin:0;"><span class="field-label" id="adm-s-course-label">Course / topic</span>
+              <input type="text" id="adm-s-course" maxlength="200" placeholder="e.g. Horizon STCB" />
             </label>
             <label class="field" style="margin:0;"><span class="field-label">Hours</span>
               <input type="number" min="0" step="0.25" id="adm-s-hours" placeholder="0" />
             </label>
-            <label class="field" style="margin:0;"><span class="field-label">Remarks</span>
-              <input type="text" id="adm-s-remarks" placeholder="optional" />
+            <label class="field" style="margin:0;"><span class="field-label" id="adm-s-remarks-label">Remarks</span>
+              <input type="text" id="adm-s-remarks" maxlength="500" placeholder="optional" />
             </label>
-            <button class="btn-primary" type="submit">Add</button>
+            <button class="btn-primary" type="submit" id="adm-s-add-btn">Add</button>
           </div>
+          <label class="field" style="margin:12px 0 0;">
+            <span class="field-label">Attach files (optional) — PDF, Word, Excel, PowerPoint, CSV, text or images · up to 3 files, 10 MB each</span>
+            <input type="file" id="adm-s-files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.png,.jpg,.jpeg,.gif,.webp" />
+          </label>
+          <div id="adm-s-upload-status" class="hint-text" style="margin-top:6px;"></div>
         </form>
         <div id="adm-session-error" class="error-text hidden"></div>
         <h3 class="section-title" style="margin-top:16px;">Sessions on this date</h3>
         <div id="adm-sessions-wrap"></div>
+      </div>
+
+      <div class="card" style="padding:24px; margin-bottom:20px;">
+        <h2 style="font-size:1.1rem; margin-bottom:6px;">Add an achievement</h2>
+        <p class="hint-text" style="margin-bottom:16px;">Uses the trainer and date chosen above.</p>
+        <form onsubmit="return handleAdminAddAchievement(event)">
+          <div class="grid-2">
+            <label class="field"><span class="field-label">Type</span><select id="adm-ach-type"></select></label>
+            <label class="field"><span class="field-label">Result (if a competition)</span><select id="adm-ach-result"></select></label>
+          </div>
+          <label class="field"><span class="field-label">What was it?</span><input type="text" id="adm-ach-title" maxlength="200" placeholder="e.g. State Robotics Championship" /></label>
+          <div class="grid-3">
+            <label class="field"><span class="field-label">Grade / students (optional)</span><input type="text" id="adm-ach-grade" maxlength="60" placeholder="e.g. Grade 8" /></label>
+            <label class="field"><span class="field-label">School (optional)</span><select id="adm-ach-school"></select></label>
+            <label class="field"><span class="field-label">Prize / details (optional)</span><input type="text" id="adm-ach-details" maxlength="500" placeholder="e.g. 1st prize" /></label>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button class="btn-primary" type="submit">Add achievement</button>
+            <span id="adm-ach-error" class="error-text hidden"></span>
+          </div>
+        </form>
+        <h3 class="section-title" style="margin-top:16px;">Achievements on this date</h3>
+        <div id="adm-ach-wrap"></div>
       </div>
     </div>
 
@@ -549,6 +632,7 @@ let trainerProfiles = [];
 let schools = [];
 let planProgress = [];
 let assignments = [];
+let achievements = [];
 let charts = {};
 let adminView = "overview";
 let profileTrainerName = null;
@@ -654,23 +738,61 @@ function keyOf(trainer, date) { return trainer + "||" + date; }
 
 function buildDailyAggregates() {
   const map = {};
+  const day = (trainer, date) => {
+    const k = keyOf(trainer, date);
+    return (map[k] = map[k] || { trainer, date, schoolHours: 0, sessionHours: 0, wfhHours: 0, competitionHours: 0, loginTime: "", logoutTime: "", breakMinutes: 0, freeHours: 0, dayNote: "", entries: [] });
+  };
   dailyLogs.forEach(l => {
-    const k = keyOf(l.Trainer, l.Date);
-    map[k] = map[k] || { trainer: l.Trainer, date: l.Date, schoolHours: 0, sessionHours: 0, loginTime: "", logoutTime: "", breakMinutes: 0, freeHours: 0 };
-    map[k].schoolHours = Number(l.SchoolSessionHours) || 0;
-    map[k].loginTime = l.LoginTime; map[k].logoutTime = l.LogoutTime;
-    map[k].breakMinutes = Number(l.BreakMinutes) || 0; map[k].freeHours = Number(l.FreeHours) || 0;
+    const d = day(l.Trainer, l.Date);
+    d.schoolHours = Number(l.SchoolSessionHours) || 0;
+    d.loginTime = l.LoginTime; d.logoutTime = l.LogoutTime;
+    d.breakMinutes = Number(l.BreakMinutes) || 0; d.freeHours = Number(l.FreeHours) || 0;
+    d.dayNote = l.Remarks || "";
   });
-  sessions.forEach(s => {
-    const k = keyOf(s.Trainer, s.Date);
-    map[k] = map[k] || { trainer: s.Trainer, date: s.Date, schoolHours: 0, sessionHours: 0, loginTime: "", logoutTime: "", breakMinutes: 0, freeHours: 0 };
-    map[k].sessionHours += Number(s.Hours) || 0;
+  sessions.forEach(sx => {
+    const d = day(sx.Trainer, sx.Date);
+    const h = Number(sx.Hours) || 0;
+    if (sx.SessionType === COMPETITION_TYPE) d.competitionHours += h;
+    else if (sx.SessionType === WFH_TYPE) d.wfhHours += h;
+    else d.sessionHours += h;
+    d.entries.push(sx);
   });
   return Object.values(map).map(d => {
-    d.total = d.schoolHours + d.sessionHours;
+    d.total = d.schoolHours + d.sessionHours + d.wfhHours + d.competitionHours;
     d.band = utilizationBand(d.total);
     return d;
   });
+}
+
+// What each day's hours actually were: the day note, then every entry with its
+// description and any attached files. Shown in the "Details" column.
+function filesHtml(list) {
+  return (list || []).map(a => `<a class="file-link" href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join(" ");
+}
+function entryLabel(sx) {
+  return esc(sx.SessionType) + (sx.Mode && sx.Mode !== WFH_TYPE ? " (" + esc(sx.Mode) + ")" : "");
+}
+function dayDetailsHtml(d) {
+  const lines = [];
+  if (d.dayNote) lines.push(`<div class="detail-line"><strong>School day</strong> — ${esc(d.dayNote)}</div>`);
+  (d.entries || []).forEach(sx => {
+    const what = [sx.CourseTopic, sx.Remarks].filter(Boolean).join(" — ");
+    lines.push(`<div class="detail-line"><strong>${entryLabel(sx)}</strong> ${esc(sx.Hours)}h${what ? " — " + esc(what) : ""} ${filesHtml(sx.Attachments)}</div>`);
+  });
+  return lines.join("") || '<span class="hint-text">—</span>';
+}
+function dayDetailsText(d) {
+  const parts = [];
+  if (d.dayNote) parts.push("School day: " + d.dayNote);
+  (d.entries || []).forEach(sx => {
+    const what = [sx.CourseTopic, sx.Remarks].filter(Boolean).join(" - ");
+    const files = (sx.Attachments || []).map(a => a.name + " " + a.url).join(" ");
+    parts.push(sx.SessionType + " " + sx.Hours + "h" + (what ? ": " + what : "") + (files ? " [" + files + "]" : ""));
+  });
+  return parts.join(" | ");
+}
+function sessionTypeOptionsHtml() {
+  return SESSION_TYPES.map(t => `<option value="${esc(t)}">${esc(SESSION_TYPE_LABELS[t] || t)}</option>`).join("");
 }
 function utilizationBand(hours) {
   if (hours < UTIL.UNDER_MAX) return "under";
@@ -835,7 +957,7 @@ function showScreen(name) {
   if (name === "trainer") {
     document.getElementById("trainer-name-display").textContent = currentTrainer;
     const typeSel = document.getElementById("s-type");
-    if (!typeSel.options.length) typeSel.innerHTML = SESSION_TYPES.map(t => `<option>${t}</option>`).join("");
+    if (!typeSel.options.length) { typeSel.innerHTML = sessionTypeOptionsHtml(); onSessionTypeChange("s"); }
     document.getElementById("working-date").value = todayLocal();
     document.getElementById("working-date").max = todayLocal();
     onWorkingDateChange();
@@ -844,6 +966,10 @@ function showScreen(name) {
     document.getElementById("pr-date").value = todayLocal();
     document.getElementById("pr-date").max = todayLocal();
     populateSchoolSelect();
+    document.getElementById("ach-date").value = todayLocal();
+    document.getElementById("ach-date").max = todayLocal();
+    initAchievementForm("ach");
+    renderTrainerAchievements();
   }
   if (name === "admin") {
     populateTrainerFilter();
@@ -885,6 +1011,8 @@ async function refreshData() {
     populateSchoolSelect();
     onWorkingDateChange();
     renderTrainerHistory();
+    initAchievementForm("ach");
+    renderTrainerAchievements();
   } else if (!document.getElementById("screen-admin").classList.contains("hidden")) {
     populateTrainerFilter();
     setAdminView(adminView);
@@ -898,6 +1026,7 @@ function applyData(result) {
   schools = result.schools || [];
   planProgress = result.planProgress || [];
   assignments = result.assignments || [];
+  achievements = result.achievements || [];
 }
 
 async function saveTrainerInfo(name, photoUrl) {
@@ -1035,6 +1164,7 @@ function onWorkingDateChange() {
   document.getElementById("f-breakMinutes").value = existing ? existing.BreakMinutes : "";
   document.getElementById("f-freeHours").value = existing ? existing.FreeHours : "";
   document.getElementById("f-schoolSessionHours").value = existing ? existing.SchoolSessionHours : "";
+  document.getElementById("f-dayRemarks").value = existing ? (existing.Remarks || "") : "";
   renderTodaySessions();
 }
 
@@ -1050,7 +1180,8 @@ async function handleSaveDailyLog(e) {
     logoutTime: document.getElementById("f-logoutTime").value,
     breakMinutes: document.getElementById("f-breakMinutes").value || 0,
     freeHours: document.getElementById("f-freeHours").value || 0,
-    schoolSessionHours: document.getElementById("f-schoolSessionHours").value || 0
+    schoolSessionHours: document.getElementById("f-schoolSessionHours").value || 0,
+    remarks: document.getElementById("f-dayRemarks").value
   };
   try {
     await apiWrite(payload);
@@ -1063,30 +1194,81 @@ async function handleSaveDailyLog(e) {
   return false;
 }
 
+// ---- attaching files to an entry ----
+function needsDetails(type) { return type === WFH_TYPE || type === "Other"; }
+function detailsMessage(type) {
+  return type === WFH_TYPE ? "Please say what you worked on while working from home." : "Please describe this work in the remarks.";
+}
+
+// Adapts the form to the chosen type of work. prefix is "s" (trainer page) or "adm-s" (admin Add logs).
+function onSessionTypeChange(prefix) {
+  const el = id => document.getElementById(prefix + "-" + id);
+  const type = el("type").value;
+  el("mode-field").style.display = type === WFH_TYPE ? "none" : "";
+  let courseLabel = "Course / topic", coursePh = "e.g. Horizon STCB", remarksLabel = "Remarks", remarksPh = "optional";
+  if (type === COMPETITION_TYPE) coursePh = "Which competition? e.g. WRO 2026";
+  if (type === WFH_TYPE) { courseLabel = "Project / task (optional)"; coursePh = "e.g. Curriculum document"; remarksLabel = "What did you work on? (required)"; remarksPh = "Describe the work"; }
+  if (type === "Other") { remarksLabel = "Describe it (required)"; remarksPh = "What was this work?"; }
+  el("course-label").textContent = courseLabel; el("course").placeholder = coursePh;
+  el("remarks-label").textContent = remarksLabel; el("remarks").placeholder = remarksPh;
+}
+
+function checkFiles(files) {
+  if (files.length > MAX_FILES) throw new Error("You can attach up to " + MAX_FILES + " files.");
+  files.forEach(f => {
+    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    if (ATTACH_EXTS.indexOf(ext) === -1) throw new Error('"' + f.name + '" isn\'t an allowed file type.');
+    if (f.size > MAX_FILE_MB * 1024 * 1024) throw new Error('"' + f.name + '" is over ' + MAX_FILE_MB + " MB.");
+  });
+}
+// Uploads the chosen files one by one and returns [{name, url}] to save with the entry.
+async function uploadFiles(inputEl, statusEl, meta) {
+  const files = Array.from(inputEl.files || []);
+  checkFiles(files); // check everything first, so we never upload half a set
+  const out = [];
+  for (let i = 0; i < files.length; i++) {
+    statusEl.textContent = "Uploading file " + (i + 1) + " of " + files.length + "…";
+    const base64Data = await readFileAsBase64(files[i]);
+    const r = await apiWrite(Object.assign({ action: "uploadAttachment", fileName: files[i].name, base64Data }, meta));
+    out.push({ name: r.name, url: r.url });
+  }
+  return out;
+}
+
 async function handleAddSession(e) {
   e.preventDefault();
   const errEl = document.getElementById("session-add-error");
+  const statusEl = document.getElementById("s-upload-status");
+  const btn = document.getElementById("s-add-btn");
   errEl.classList.add("hidden");
   const hours = Number(document.getElementById("s-hours").value);
   if (!hours || hours <= 0) { errEl.textContent = "Enter hours greater than 0."; errEl.classList.remove("hidden"); return false; }
-  const payload = {
-    action: "saveSession", trainer: currentTrainer,
-    date: document.getElementById("working-date").value,
-    mode: document.getElementById("s-mode").value,
-    sessionType: document.getElementById("s-type").value,
-    courseTopic: document.getElementById("s-course").value,
-    hours: hours,
-    remarks: document.getElementById("s-remarks").value
-  };
+  const type = document.getElementById("s-type").value;
+  const remarks = document.getElementById("s-remarks").value.trim();
+  if (needsDetails(type) && !remarks) { errEl.textContent = detailsMessage(type); errEl.classList.remove("hidden"); return false; }
+  const date = document.getElementById("working-date").value;
+
+  btn.disabled = true;
   try {
-    await apiWrite(payload);
+    const attachments = await uploadFiles(document.getElementById("s-files"), statusEl, { date });
+    await apiWrite({
+      action: "saveSession", date, attachments,
+      mode: document.getElementById("s-mode").value,
+      sessionType: type,
+      courseTopic: document.getElementById("s-course").value,
+      hours: hours,
+      remarks: remarks
+    });
     await loadAllData();
     document.getElementById("s-course").value = "";
     document.getElementById("s-hours").value = "";
     document.getElementById("s-remarks").value = "";
+    document.getElementById("s-files").value = "";
     renderTodaySessions();
     renderTrainerHistory();
   } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
+  statusEl.textContent = "";
+  btn.disabled = false;
   return false;
 }
 
@@ -1120,8 +1302,8 @@ function renderTrainerHistory() {
   if (agg.length === 0) {
     summaryWrap.innerHTML = '<p class="empty-note">No entries yet — start with today above.</p>';
   } else {
-    summaryWrap.innerHTML = `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-      ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+    summaryWrap.innerHTML = `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th>Status</th><th>Details</th></tr></thead><tbody>
+      ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
     </tbody></table>`;
   }
 
@@ -1130,8 +1312,8 @@ function renderTrainerHistory() {
   if (mySessions.length === 0) {
     sessWrap.innerHTML = '<p class="empty-note">No session entries yet.</p>';
   } else {
-    sessWrap.innerHTML = `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th></th></tr></thead><tbody>
-      ${mySessions.map(s => `<tr><td>${esc(s.Date)}</td><td>${esc(s.Mode)}</td><td>${esc(s.SessionType)}</td><td>${esc(s.CourseTopic)}</td><td class="num">${esc(s.Hours)}h</td><td>${esc(s.Remarks)}</td><td><button class="btn-danger" onclick="deleteSessionEntry(${js_(s.Id)})">Delete</button></td></tr>`).join("")}
+    sessWrap.innerHTML = `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th>Files</th><th></th></tr></thead><tbody>
+      ${mySessions.map(s => `<tr><td>${esc(s.Date)}</td><td>${esc(s.Mode)}</td><td>${esc(s.SessionType)}</td><td>${esc(s.CourseTopic)}</td><td class="num">${esc(s.Hours)}h</td><td>${esc(s.Remarks)}</td><td>${filesHtml(s.Attachments)}</td><td><button class="btn-danger" onclick="deleteSessionEntry(${js_(s.Id)})">Delete</button></td></tr>`).join("")}
     </tbody></table>`;
   }
 }
@@ -1163,6 +1345,104 @@ function setAdminView(view) {
 function openProfile(name) { profileTrainerName = name; setAdminView("profile"); }
 
 // ================================================================
+// ACHIEVEMENTS (shared by trainer + admin screens)
+// ================================================================
+// Fills the Type / Result / School dropdowns of an achievement form.
+// prefix is "ach" (trainer page) or "adm-ach" (admin Add logs tab).
+function initAchievementForm(prefix) {
+  const el = id => document.getElementById(prefix + "-" + id);
+  if (!el("type").options.length) el("type").innerHTML = ACHIEVEMENT_TYPES.map(t => `<option>${esc(t)}</option>`).join("");
+  if (!el("result").options.length) el("result").innerHTML = ACHIEVEMENT_RESULTS.map(r => `<option value="${esc(r.value)}">${esc(r.label)}</option>`).join("");
+  const keep = el("school").value;
+  el("school").innerHTML = '<option value="">—</option>' + schoolNamesList().map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  el("school").value = keep;
+}
+
+function achievementsTableHtml(list, opts) {
+  if (!list.length) return `<p class="empty-note">${esc(opts.empty || "No achievements yet.")}</p>`;
+  const rows = list.slice().sort((a, b) => (a.Date < b.Date ? 1 : -1)).map(a => `<tr>
+      <td>${esc(a.Date)}</td>
+      ${opts.showTrainer ? `<td><a href="#profile/${encodeURIComponent(a.Trainer)}" onclick="openProfile(${js_(a.Trainer)}); return false;">${esc(a.Trainer)}</a></td>` : ""}
+      <td>${esc(a.Type)}</td><td>${esc(a.Title)}</td>
+      <td>${a.Result === "Won" ? '<span class="badge gold">Won</span>' : (a.Result ? `<span class="chip">${esc(a.Result)}</span>` : "")}</td>
+      <td>${esc([a.Grade, a.School].filter(Boolean).join(" · "))}</td>
+      <td>${esc(a.Details)}</td>
+      ${opts.allowDelete ? `<td><button class="btn-danger" onclick="deleteAchievementEntry(${js_(a.Id)})">Delete</button></td>` : ""}
+    </tr>`).join("");
+  return `<div style="overflow-x:auto;"><table><thead><tr><th>Date</th>${opts.showTrainer ? "<th>Trainer</th>" : ""}<th>Type</th><th>Achievement</th><th>Result</th><th>Grade / school</th><th>Details</th>${opts.allowDelete ? "<th></th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function renderTrainerAchievements() {
+  const mine = achievements.filter(a => sameName(a.Trainer, currentTrainer));
+  document.getElementById("ach-list-wrap").innerHTML = achievementsTableHtml(mine, { showTrainer: false, allowDelete: true });
+}
+
+async function handleAddAchievement(e) {
+  e.preventDefault();
+  const errEl = document.getElementById("ach-error");
+  errEl.classList.add("hidden");
+  const title = document.getElementById("ach-title").value.trim();
+  if (!title) { errEl.textContent = "Say what the achievement was."; errEl.classList.remove("hidden"); return false; }
+  try {
+    await apiWrite({
+      action: "saveAchievement",
+      date: document.getElementById("ach-date").value,
+      type: document.getElementById("ach-type").value,
+      result: document.getElementById("ach-result").value,
+      title: title,
+      grade: document.getElementById("ach-grade").value,
+      school: document.getElementById("ach-school").value,
+      details: document.getElementById("ach-details").value
+    });
+    await loadAllData();
+    ["ach-title", "ach-grade", "ach-details"].forEach(id => { document.getElementById(id).value = ""; });
+    renderTrainerAchievements();
+  } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
+  return false;
+}
+
+async function handleAdminAddAchievement(e) {
+  e.preventDefault();
+  const errEl = document.getElementById("adm-ach-error");
+  errEl.classList.add("hidden");
+  const trainer = document.getElementById("adm-trainer").value;
+  const date = document.getElementById("adm-date").value;
+  const title = document.getElementById("adm-ach-title").value.trim();
+  if (!trainer || !date) { errEl.textContent = "Choose a trainer and a date first."; errEl.classList.remove("hidden"); return false; }
+  if (!title) { errEl.textContent = "Say what the achievement was."; errEl.classList.remove("hidden"); return false; }
+  try {
+    await apiWrite({
+      action: "saveAchievement", trainer, date,
+      type: document.getElementById("adm-ach-type").value,
+      result: document.getElementById("adm-ach-result").value,
+      title: title,
+      grade: document.getElementById("adm-ach-grade").value,
+      school: document.getElementById("adm-ach-school").value,
+      details: document.getElementById("adm-ach-details").value
+    });
+    await loadAllData();
+    ["adm-ach-title", "adm-ach-grade", "adm-ach-details"].forEach(id => { document.getElementById(id).value = ""; });
+    onAdminLogContextChange();
+  } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
+  return false;
+}
+
+async function deleteAchievementEntry(id) {
+  if (!confirm("Delete this achievement?")) return;
+  try {
+    await apiWrite({ action: "deleteAchievement", id });
+    await loadAllData();
+    if (!document.getElementById("screen-trainer").classList.contains("hidden")) {
+      renderTrainerAchievements();
+    } else if (!document.getElementById("screen-admin").classList.contains("hidden")) {
+      if (adminView === "profile") renderProfile();
+      else if (adminView === "add-log") onAdminLogContextChange();
+      else renderOverview();
+    }
+  } catch (err) { alert(friendlyError(err)); }
+}
+
+// ================================================================
 // ADMIN — ADD / EDIT LOGS FOR ANY TRAINER (e.g. missed or earlier days)
 // ================================================================
 let pendingAddLogTrainer = null;
@@ -1184,7 +1464,8 @@ function renderAdminAddLog() {
   if (wanted && names.indexOf(wanted) !== -1) sel.value = wanted;
 
   const typeSel = document.getElementById("adm-s-type");
-  if (!typeSel.options.length) typeSel.innerHTML = SESSION_TYPES.map(t => `<option>${esc(t)}</option>`).join("");
+  if (!typeSel.options.length) { typeSel.innerHTML = sessionTypeOptionsHtml(); onSessionTypeChange("adm-s"); }
+  initAchievementForm("adm-ach");
 
   const dateEl = document.getElementById("adm-date");
   dateEl.max = todayLocal();
@@ -1193,8 +1474,8 @@ function renderAdminAddLog() {
 }
 
 function sessionRowHtml(sx) {
-  return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:0.85rem;">
-      <span><span class="chip">${esc(sx.Mode)}</span> <strong>${esc(sx.SessionType)}</strong> ${sx.CourseTopic ? "— " + esc(sx.CourseTopic) : ""} · ${esc(sx.Hours)}h ${sx.Remarks ? "· " + esc(sx.Remarks) : ""}</span>
+  return `<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:0.85rem;">
+      <span><span class="chip">${esc(sx.Mode)}</span> <strong>${esc(sx.SessionType)}</strong> ${sx.CourseTopic ? "— " + esc(sx.CourseTopic) : ""} · ${esc(sx.Hours)}h ${sx.Remarks ? "· " + esc(sx.Remarks) : ""} ${filesHtml(sx.Attachments)}</span>
       <button class="btn-danger" onclick="deleteSessionEntry(${js_(sx.Id)})">Delete</button>
     </div>`;
 }
@@ -1208,6 +1489,12 @@ function onAdminLogContextChange() {
   document.getElementById("adm-breakMinutes").value = existing ? existing.BreakMinutes : "";
   document.getElementById("adm-freeHours").value = existing ? existing.FreeHours : "";
   document.getElementById("adm-schoolSessionHours").value = existing ? existing.SchoolSessionHours : "";
+  document.getElementById("adm-dayRemarks").value = existing ? (existing.Remarks || "") : "";
+
+  const achWrap = document.getElementById("adm-ach-wrap");
+  achWrap.innerHTML = trainer
+    ? achievementsTableHtml(achievements.filter(a => sameName(a.Trainer, trainer) && a.Date === date), { showTrainer: false, allowDelete: true, empty: "No achievements on this date yet." })
+    : '<p class="hint-text">Select a trainer first.</p>';
 
   const wrap = document.getElementById("adm-sessions-wrap");
   if (!trainer) { wrap.innerHTML = '<p class="hint-text">Select a trainer to see their sessions.</p>'; return; }
@@ -1233,7 +1520,8 @@ async function handleAdminSaveDailyLog(e) {
       logoutTime: document.getElementById("adm-logoutTime").value,
       breakMinutes: document.getElementById("adm-breakMinutes").value || 0,
       freeHours: document.getElementById("adm-freeHours").value || 0,
-      schoolSessionHours: document.getElementById("adm-schoolSessionHours").value || 0
+      schoolSessionHours: document.getElementById("adm-schoolSessionHours").value || 0,
+      remarks: document.getElementById("adm-dayRemarks").value
     });
     await loadAllData();
     okEl.classList.remove("hidden");
@@ -1248,25 +1536,36 @@ async function handleAdminAddSession(e) {
   const trainer = document.getElementById("adm-trainer").value;
   const date = document.getElementById("adm-date").value;
   const errEl = document.getElementById("adm-session-error");
+  const statusEl = document.getElementById("adm-s-upload-status");
+  const btn = document.getElementById("adm-s-add-btn");
   errEl.classList.add("hidden");
   if (!trainer || !date) { errEl.textContent = "Choose a trainer and a date first."; errEl.classList.remove("hidden"); return false; }
   const hours = Number(document.getElementById("adm-s-hours").value);
   if (!hours || hours <= 0) { errEl.textContent = "Enter hours greater than 0."; errEl.classList.remove("hidden"); return false; }
+  const type = document.getElementById("adm-s-type").value;
+  const remarks = document.getElementById("adm-s-remarks").value.trim();
+  if (needsDetails(type) && !remarks) { errEl.textContent = detailsMessage(type); errEl.classList.remove("hidden"); return false; }
+
+  btn.disabled = true;
   try {
+    const attachments = await uploadFiles(document.getElementById("adm-s-files"), statusEl, { trainer, date });
     await apiWrite({
-      action: "saveSession", trainer, date,
+      action: "saveSession", trainer, date, attachments,
       mode: document.getElementById("adm-s-mode").value,
-      sessionType: document.getElementById("adm-s-type").value,
+      sessionType: type,
       courseTopic: document.getElementById("adm-s-course").value,
       hours: hours,
-      remarks: document.getElementById("adm-s-remarks").value
+      remarks: remarks
     });
     await loadAllData();
     document.getElementById("adm-s-course").value = "";
     document.getElementById("adm-s-hours").value = "";
     document.getElementById("adm-s-remarks").value = "";
+    document.getElementById("adm-s-files").value = "";
     onAdminLogContextChange();
   } catch (err) { errEl.textContent = friendlyError(err); errEl.classList.remove("hidden"); }
+  statusEl.textContent = "";
+  btn.disabled = false;
   return false;
 }
 
@@ -1440,6 +1739,33 @@ function getFilteredSessions() {
   );
 }
 
+function getFilteredAchievements() {
+  const trainerFilter = document.getElementById("filter-trainer").value;
+  const from = document.getElementById("filter-from").value;
+  const to = document.getElementById("filter-to").value;
+  return achievements.filter(a =>
+    (trainerFilter === "all" || a.Trainer === trainerFilter) &&
+    (!from || a.Date >= from) && (!to || a.Date <= to)
+  );
+}
+
+// Competition-training hours + achievements per trainer: the "extra effort" view.
+function renderExtraEffort(sess, ach) {
+  const by = {};
+  const row = n => (by[n] = by[n] || { name: n, comp: 0, ach: 0, won: 0 });
+  sess.forEach(x => { if (x.SessionType === COMPETITION_TYPE) row(x.Trainer).comp += Number(x.Hours) || 0; });
+  ach.forEach(a => { const r = row(a.Trainer); r.ach++; if (a.Result === "Won") r.won++; });
+  const rows = Object.values(by).sort((a, b) => b.comp - a.comp || b.ach - a.ach || a.name.localeCompare(b.name));
+  const totalHours = rows.reduce((t, r) => t + r.comp, 0);
+  document.getElementById("extra-effort-title").textContent =
+    `Extra effort by trainer — ${totalHours.toFixed(1)}h competition training, ${ach.length} achievement${ach.length === 1 ? "" : "s"}`;
+  const wrap = document.getElementById("extra-effort-wrap");
+  if (rows.length === 0) { wrap.innerHTML = '<p class="empty-note">No competition training or achievements in this period.</p>'; return; }
+  wrap.innerHTML = `<table><thead><tr><th>Trainer</th><th class="num">Competition training</th><th class="num">Achievements</th><th class="num">Prizes won</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td><a href="#profile/${encodeURIComponent(r.name)}" onclick="openProfile(${js_(r.name)}); return false;">${esc(r.name)}</a></td><td class="num">${r.comp.toFixed(2)}h</td><td class="num">${r.ach}</td><td class="num">${r.won}</td></tr>`).join("")}
+  </tbody></table>`;
+}
+
 function renderOverview() {
   const period = document.getElementById("filter-period").value;
   const agg = getFilteredAggregates();
@@ -1452,6 +1778,11 @@ function renderOverview() {
   document.getElementById("stat-under").textContent = under;
   document.getElementById("stat-proper").textContent = proper;
   document.getElementById("stat-over").textContent = over;
+
+  const ach = getFilteredAchievements();
+  renderExtraEffort(sess, ach);
+  document.getElementById("admin-achievements-title").textContent = `Achievements (${ach.length})`;
+  document.getElementById("admin-achievements-wrap").innerHTML = achievementsTableHtml(ach, { showTrainer: true, allowDelete: true });
 
   // Hours by trainer, stacked by session type + school
   const byTrainer = {};
@@ -1499,8 +1830,8 @@ function renderOverview() {
   const wrap = document.getElementById("admin-table-wrap");
   if (agg.length === 0) { wrap.innerHTML = '<p class="empty-note">No entries match these filters.</p>'; return; }
   const sorted = agg.slice().sort((a, b) => a.date < b.date ? 1 : -1);
-  wrap.innerHTML = `<table><thead><tr><th>Trainer</th><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-    ${sorted.map(d => `<tr><td><a href="#profile/${encodeURIComponent(d.trainer)}" onclick="openProfile(${js_(d.trainer)}); return false;">${esc(d.trainer)}</a></td><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+  wrap.innerHTML = `<table><thead><tr><th>Trainer</th><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th>Status</th><th>Details</th></tr></thead><tbody>
+    ${sorted.map(d => `<tr><td><a href="#profile/${encodeURIComponent(d.trainer)}" onclick="openProfile(${js_(d.trainer)}); return false;">${esc(d.trainer)}</a></td><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
   </tbody></table>`;
 }
 
@@ -1511,8 +1842,8 @@ function csvCell(v) {
 }
 function exportCSV() {
   const agg = getFilteredAggregates();
-  const header = "Trainer,Date,SchoolHours,SessionHours,TotalHours,Status\n";
-  const rows = agg.map(d => [d.trainer, d.date, d.schoolHours, d.sessionHours.toFixed(2), d.total.toFixed(2), bandLabel(d.band)].map(csvCell).join(",")).join("\n");
+  const header = "Trainer,Date,SchoolHours,SessionHours,WFHHours,CompetitionHours,TotalHours,Status,Details\n";
+  const rows = agg.map(d => [d.trainer, d.date, d.schoolHours, d.sessionHours.toFixed(2), d.wfhHours.toFixed(2), d.competitionHours.toFixed(2), d.total.toFixed(2), bandLabel(d.band), dayDetailsText(d)].map(csvCell).join(",")).join("\n");
   const blob = new Blob([header + rows], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a"); a.href = url; a.download = "uwr-trainer-desk.csv"; a.click();
@@ -1580,7 +1911,12 @@ function renderProfile() {
     <div class="card stat-card"><div class="stat-label">Days logged</div><div class="stat-value">${agg.length}</div></div>
     <div class="card stat-card"><div class="stat-label">Total productive hours</div><div class="stat-value">${totalHours.toFixed(1)}</div></div>
     <div class="card stat-card"><div class="stat-label">Properly utilized days</div><div class="stat-value">${proper}</div></div>
-    <div class="card stat-card"><div class="stat-label">Under / Over</div><div class="stat-value">${under} / ${over}</div></div>`;
+    <div class="card stat-card"><div class="stat-label">Under / Over</div><div class="stat-value">${under} / ${over}</div></div>
+    <div class="card stat-card"><div class="stat-label">WFH (hrs)</div><div class="stat-value">${agg.reduce((t, d) => t + d.wfhHours, 0).toFixed(1)}</div></div>
+    <div class="card stat-card"><div class="stat-label">Competition training (hrs)</div><div class="stat-value">${agg.reduce((t, d) => t + d.competitionHours, 0).toFixed(1)}</div></div>
+    <div class="card stat-card"><div class="stat-label">Achievements</div><div class="stat-value">${achievements.filter(a => sameName(a.Trainer, name)).length}</div></div>`;
+  document.getElementById("profile-achievements-wrap").innerHTML =
+    achievementsTableHtml(achievements.filter(a => sameName(a.Trainer, name)), { showTrainer: false, allowDelete: true });
 
   const typeTotals = { School: 0 };
   agg.forEach(d => { typeTotals.School += d.schoolHours; });
@@ -1605,14 +1941,14 @@ function renderProfile() {
 
   const summaryWrap = document.getElementById("profile-summary-wrap");
   summaryWrap.innerHTML = agg.length === 0 ? '<p class="empty-note">No entries yet.</p>' :
-    `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
-    ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td></tr>`).join("")}
+    `<table><thead><tr><th>Date</th><th class="num">School</th><th class="num">Sessions</th><th class="num">WFH</th><th class="num">Competition</th><th class="num">Total</th><th>Status</th><th>Details</th></tr></thead><tbody>
+    ${agg.map(d => `<tr><td>${esc(d.date)}</td><td class="num">${d.schoolHours}h</td><td class="num">${d.sessionHours.toFixed(2)}h</td><td class="num">${d.wfhHours.toFixed(2)}h</td><td class="num">${d.competitionHours.toFixed(2)}h</td><td class="num">${d.total.toFixed(2)}h</td><td><span class="badge ${d.band}">${bandLabel(d.band)}</span></td><td class="details">${dayDetailsHtml(d)}</td></tr>`).join("")}
     </tbody></table>`;
 
   const sessWrap = document.getElementById("profile-sessions-wrap");
   sessWrap.innerHTML = mySessions.length === 0 ? '<p class="empty-note">No session entries yet.</p>' :
-    `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th></th></tr></thead><tbody>
-    ${mySessions.map(s => `<tr><td>${esc(s.Date)}</td><td>${esc(s.Mode)}</td><td>${esc(s.SessionType)}</td><td>${esc(s.CourseTopic)}</td><td class="num">${esc(s.Hours)}h</td><td>${esc(s.Remarks)}</td><td><button class="btn-danger" onclick="deleteSessionEntry(${js_(s.Id)})">Delete</button></td></tr>`).join("")}
+    `<table><thead><tr><th>Date</th><th>Mode</th><th>Type</th><th>Course/Topic</th><th class="num">Hours</th><th>Remarks</th><th>Files</th><th></th></tr></thead><tbody>
+    ${mySessions.map(s => `<tr><td>${esc(s.Date)}</td><td>${esc(s.Mode)}</td><td>${esc(s.SessionType)}</td><td>${esc(s.CourseTopic)}</td><td class="num">${esc(s.Hours)}h</td><td>${esc(s.Remarks)}</td><td>${filesHtml(s.Attachments)}</td><td><button class="btn-danger" onclick="deleteSessionEntry(${js_(s.Id)})">Delete</button></td></tr>`).join("")}
     </tbody></table>`;
 }
 
